@@ -10,7 +10,8 @@ Please note that this is not [WorldEdit], which allows you to make changes
 to your world, but WorldEditCUI, a frontend for WorldEdit. You must have
 WorldEdit installed on your server.
 
-This version is modified to create a LabyMod Addon (fork of [WorldEditCUI](https://github.com/EngineHub/WorldEditCUI)).
+This version is modified to port WorldEditCUI into an LabyMod Addon.
+Original version: [WorldEditCUI](https://github.com/EngineHub/WorldEditCUI).
 
 - Click [HERE](https://modrinth.com/mod/worldedit-cui) for the **Fabric** mod
 - Click [HERE](https://www.curseforge.com/minecraft/mc-mods/worldeditcui) for the **LiteLoader** version
