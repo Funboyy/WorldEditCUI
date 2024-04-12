@@ -7,10 +7,8 @@ plugins {
 group = "org.example"
 version = "1.0.0"
 
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(21))
-
 labyMod {
-    defaultPackageName = "de.funboyy.addon.worldedit.cui" //change this to your main package name (used by all modules)
+    defaultPackageName = "de.funboyy.addon.worldedit.cui"
     addonInfo {
         namespace = "worldedit_cui"
         displayName = "WorldEdit CUI"
