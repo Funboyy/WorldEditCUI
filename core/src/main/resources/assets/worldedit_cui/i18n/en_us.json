@@ -1,0 +1,60 @@
+{
+  "worldedit_cui": {
+    "settings": {
+      "name": "WorldEdit CUI",
+      "enabled": {
+        "name": "Enabled"
+      },
+      "header": {
+        "cuboid": {
+          "name": "Cuboid"
+        },
+        "polygon": {
+          "name": "Polygon"
+        },
+        "ellipsoid": {
+          "name": "Ellipsoid"
+        },
+        "cylinder": {
+          "name": "Cylinder"
+        }
+      },
+      "cuboidGrid": {
+        "name": "Grid Color"
+      },
+      "cuboidBox": {
+        "name": "Box Color"
+      },
+      "cuboidPointOne": {
+        "name": "First Position Color"
+      },
+      "cuboidPointTwo": {
+        "name": "Second Position Color"
+      },
+      "polygonGrid": {
+        "name": "Grid Color"
+      },
+      "polygonBox": {
+        "name": "Box Color"
+      },
+      "polygonPoint": {
+        "name": "Position Color"
+      },
+      "ellipsoidGrid": {
+        "name": "Grid Color"
+      },
+      "ellipsoidCenter": {
+        "name": "Center Color"
+      },
+      "cylinderGrid": {
+        "name": "Grid Color"
+      },
+      "cylinderBox": {
+        "name": "Box Color"
+      },
+      "cylinderCenter": {
+        "name": "Center Color"
+      }
+    }
+  }
+}
