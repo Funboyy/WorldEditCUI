@@ -9,7 +9,6 @@ import org.enginehub.worldeditcui.WorldEdit;
 public class WorldEditAddon extends LabyAddon<WorldEditConfiguration> {
 
   // ToDo:
-  //  - find a good way to make it work with OptiFine Shaders
   //  - sometimes the player is missing in the player list in 1.8.9 and 1.16.5
 
   @Override
