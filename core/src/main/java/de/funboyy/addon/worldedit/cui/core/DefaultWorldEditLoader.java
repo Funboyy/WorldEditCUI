@@ -8,10 +8,12 @@ import de.funboyy.addon.worldedit.cui.api.render.WorldEditRenderer;
 import de.funboyy.addon.worldedit.cui.api.render.pipeline.OptiFinePipelineProvider;
 import de.funboyy.addon.worldedit.cui.api.render.pipeline.VanillaPipelineProvider;
 import de.funboyy.addon.worldedit.cui.core.protocol.WorldEditProtocol;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.inject.Singleton;
 import net.labymod.api.Laby;
 import net.labymod.api.client.network.server.ServerController;
+import net.labymod.api.client.resources.ResourceLocation;
 import net.labymod.api.event.Subscribe;
 import net.labymod.api.event.client.chat.ChatMessageSendEvent;
 import net.labymod.api.event.client.network.server.ServerJoinEvent;
@@ -79,7 +81,10 @@ public class DefaultWorldEditLoader implements WorldEditLoader {
     event.setCancelled(true);
 
     final ServerController serverController = Laby.references().serverController();
-    serverController.loginOrServerSwitch(serverController.getCurrentServerData());
+    serverController.sendPayload(ResourceLocation.create("minecraft", "register"),
+        "WECUI".getBytes(StandardCharsets.UTF_8));
+
+    this.handleJoin();
   }
 
   @Subscribe

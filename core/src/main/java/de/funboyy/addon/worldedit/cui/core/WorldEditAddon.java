@@ -8,9 +8,6 @@ import org.enginehub.worldeditcui.WorldEdit;
 @AddonMain
 public class WorldEditAddon extends LabyAddon<WorldEditConfiguration> {
 
-  // ToDo:
-  //  - sometimes the player is missing in the player list in 1.8.9 and 1.16.5
-
   @Override
   protected void enable() {
     this.registerSettingCategory();
