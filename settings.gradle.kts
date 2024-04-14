@@ -1,4 +1,4 @@
-rootProject.name = "worldedit_cui"
+rootProject.name = "worldeditcui"
 
 pluginManagement {
     val labyGradlePluginVersion = "0.3.48"

@@ -15,7 +15,7 @@ version = "1.0.0"
 labyMod {
     defaultPackageName = "de.funboyy.addon.worldedit.cui"
     addonInfo {
-        namespace = "worldedit_cui"
+        namespace = "worldeditcui"
         displayName = "WorldEdit CUI"
         author = "lahwran, yetanotherx, Mumfrey, TomyLobo, mikroskeem, Funboyy"
         description = "Client-side user interface for WorldEdit"
