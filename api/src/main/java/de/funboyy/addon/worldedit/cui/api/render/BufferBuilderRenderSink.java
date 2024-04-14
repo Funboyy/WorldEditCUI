@@ -17,21 +17,25 @@ import org.jetbrains.annotations.Nullable;
 
 public class BufferBuilderRenderSink implements RenderSink {
 
+  private static final RenderType QUADS = new RenderType(Mode.QUADS,
+      VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper().getPositionColorShader());
+  private static final RenderType LINES = new RenderType(Mode.LINES,
+      VertexFormatType.POSITION_COLOR_NORMAL, WorldEdit.references().renderHelper().getRenderTypeLinesShader());
+  private static final RenderType LINES_LOOP = new RenderType(Mode.LINES,
+      VertexFormatType.POSITION_COLOR_NORMAL, WorldEdit.references().renderHelper().getRenderTypeLinesShader());
+
   private final GlStateBridge bridge;
   private final RenderPipeline renderPipeline;
   private final Blaze3DGlStatePipeline statePipeline;
   private final RenderHelper renderHelper;
 
-  private final RenderType lines;
-  private final RenderType lineLoop;
-  private final RenderType quads;
   private final Runnable preFlush;
   private final Runnable postFlush;
   private BufferBuilder builder;
   private @Nullable RenderType activeRenderType;
   private boolean active;
   private boolean canFlush;
-  private float r = -1f, g, b, a;
+  private float red = -1f, green, blue, alpha;
   private double loopX, loopY, loopZ; // track previous vertices for lines_loop
   private double loopFirstX, loopFirstY, loopFirstZ; // track initial vertices for lines_loop
   private boolean canLoop;
@@ -40,29 +44,26 @@ public class BufferBuilderRenderSink implements RenderSink {
   private float lastLineWidth = -1;
   private GFXAlphaFunction lastDepthFunc = null;
 
-  public BufferBuilderRenderSink(final TypeFactory types) {
-    this(types, () -> {}, () -> {});
+  public BufferBuilderRenderSink() {
+    this(() -> {}, () -> {});
   }
 
-  public BufferBuilderRenderSink(final TypeFactory types, final Runnable preFlush, final Runnable postFlush) {
+  public BufferBuilderRenderSink(final Runnable preFlush, final Runnable postFlush) {
     this.bridge = Laby.references().glStateBridge();
     this.renderPipeline = Laby.references().renderPipeline();
     this.statePipeline = Laby.references().blaze3DGlStatePipeline();
     this.renderHelper = WorldEdit.references().renderHelper();
 
-    this.lines = types.lines();
-    this.lineLoop = types.linesLoop();
-    this.quads = types.quads();
     this.preFlush = preFlush;
     this.postFlush = postFlush;
   }
 
   @Override
-  public RenderSink color(final float r, final float g, final float b, final float alpha) {
-    this.r = r;
-    this.g = g;
-    this.b = b;
-    this.a = alpha;
+  public RenderSink color(final float red, final float green, final float blue, final float alpha) {
+    this.red = red;
+    this.green = green;
+    this.blue = blue;
+    this.alpha = alpha;
     return this;
   }
 
@@ -93,8 +94,8 @@ public class BufferBuilderRenderSink implements RenderSink {
 
   @Override
   public RenderSink vertex(final double x, final double y, final double z) {
-    if (this.r == -1f) {
-      throw new IllegalStateException("No colour has been set!");
+    if (this.red == -1f) {
+      throw new IllegalStateException("No color has been set!");
     }
 
     if (!this.active) {
@@ -102,14 +103,14 @@ public class BufferBuilderRenderSink implements RenderSink {
     }
 
     final BufferBuilder builder = this.builder;
-    if (this.activeRenderType == this.lineLoop) {
+    if (this.activeRenderType == LINES_LOOP) {
       // duplicate last
       if (this.canLoop) {
         final FloatVector3 normal = this.activeRenderType.hasNormals() ?
             this.computeNormal(this.loopX, this.loopY, this.loopZ, x, y, z) : null;
 
         builder.vertex((float) this.loopX, (float) this.loopY, (float) this.loopZ)
-            .color(this.r, this.g, this.b, this.a);
+            .color(this.red, this.green, this.blue, this.alpha);
 
         if (normal != null) {
           // we need to compute normals pointing directly towards the screen
@@ -117,7 +118,7 @@ public class BufferBuilderRenderSink implements RenderSink {
         }
 
         builder.next();
-        builder.vertex((float) x, (float) y, (float) z).color(this.r, this.g, this.b, this.a);
+        builder.vertex((float) x, (float) y, (float) z).color(this.red, this.green, this.blue, this.alpha);
 
         if (normal != null) {
           builder.normal(normal.getX(), normal.getY(), normal.getZ());
@@ -136,21 +137,21 @@ public class BufferBuilderRenderSink implements RenderSink {
       this.loopY = y;
       this.loopZ = z;
       this.canLoop = true;
-    } else if (this.activeRenderType == this.lines) {
+    } else if (this.activeRenderType == LINES) {
       // we buffer vertices so we can compute normals here
       if (this.canLoop) {
         final FloatVector3 normal = this.activeRenderType.hasNormals() ?
             this.computeNormal(this.loopX, this.loopY, this.loopZ, x, y, z) : null;
 
         builder.vertex((float) this.loopX, (float) this.loopY, (float) this.loopZ)
-            .color(this.r, this.g, this.b, this.a);
+            .color(this.red, this.green, this.blue, this.alpha);
 
         if (normal != null) {
           builder.normal(normal.getX(), normal.getY(), normal.getZ());
         }
 
         builder.next();
-        builder.vertex((float) x, (float) y, (float) z).color(this.r, this.g, this.b, this.a);
+        builder.vertex((float) x, (float) y, (float) z).color(this.red, this.green, this.blue, this.alpha);
 
         if (normal != null) {
           builder.normal(normal.getX(), normal.getY(), normal.getZ());
@@ -169,7 +170,7 @@ public class BufferBuilderRenderSink implements RenderSink {
     }
 
     else {
-      builder.vertex((float) x, (float) y, (float) z).color(this.r, this.g, this.b, this.a).next();
+      builder.vertex((float) x, (float) y, (float) z).color(this.red, this.green, this.blue, this.alpha).next();
     }
 
     return this;
@@ -187,13 +188,13 @@ public class BufferBuilderRenderSink implements RenderSink {
 
   @Override
   public RenderSink beginLineLoop() {
-    this.transitionState(this.lineLoop);
+    this.transitionState(LINES_LOOP);
     return this;
   }
 
   @Override
   public RenderSink endLineLoop() {
-    this.end(this.lineLoop);
+    this.end(LINES_LOOP);
 
     if (!this.canLoop) {
       return this;
@@ -205,7 +206,7 @@ public class BufferBuilderRenderSink implements RenderSink {
         this.computeNormal(this.loopX, this.loopY, this.loopZ, this.loopFirstX, this.loopFirstY, this.loopFirstZ) : null;
 
     this.builder.vertex((float) this.loopX, (float) this.loopY, (float) this.loopZ)
-        .color(this.r, this.g, this.b, this.a);
+        .color(this.red, this.green, this.blue, this.alpha);
 
     if (normal != null) {
       this.builder.normal(normal.getX(), normal.getY(), normal.getZ());
@@ -213,7 +214,7 @@ public class BufferBuilderRenderSink implements RenderSink {
 
     this.builder.next();
     this.builder.vertex((float) this.loopFirstX, (float) this.loopFirstY, (float) this.loopFirstZ)
-        .color(this.r, this.g, this.b, this.a);
+        .color(this.red, this.green, this.blue, this.alpha);
 
     if (normal != null) {
       this.builder.normal(normal.getX(), normal.getY(), normal.getZ());
@@ -225,25 +226,25 @@ public class BufferBuilderRenderSink implements RenderSink {
 
   @Override
   public RenderSink beginLines() {
-    this.transitionState(this.lines);
+    this.transitionState(LINES);
     return this;
   }
 
   @Override
   public RenderSink endLines() {
-    this.end(this.lines);
+    this.end(LINES);
     return this;
   }
 
   @Override
   public RenderSink beginQuads() {
-    this.transitionState(this.quads);
+    this.transitionState(QUADS);
     return this;
   }
 
   @Override
   public RenderSink endQuads() {
-    this.end(this.quads);
+    this.end(QUADS);
     return this;
   }
 
@@ -309,7 +310,6 @@ public class BufferBuilderRenderSink implements RenderSink {
 
     public static final int QUADS = 7;
     public static final int LINES = 1;
-    public static final int DEBUG_LINES = -5;
 
   }
 
@@ -346,16 +346,6 @@ public class BufferBuilderRenderSink implements RenderSink {
     boolean mustFlushAfter(final RenderType previous) {
       return previous.mode() != this.mode || !Objects.equals(previous.type(), this.type);
     }
-
-  }
-
-  public interface TypeFactory {
-
-    RenderType quads();
-
-    RenderType lines();
-
-    RenderType linesLoop();
 
   }
 

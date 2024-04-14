@@ -5,6 +5,7 @@ import de.funboyy.addon.worldedit.cui.api.event.WorldEditRenderEvent;
 import de.funboyy.addon.worldedit.cui.api.protocol.packet.VersionPacket;
 import de.funboyy.addon.worldedit.cui.api.protocol.packet.WorldEditPacket;
 import de.funboyy.addon.worldedit.cui.api.render.WorldEditRenderer;
+import de.funboyy.addon.worldedit.cui.api.render.pipeline.OptiFinePipelineProvider;
 import de.funboyy.addon.worldedit.cui.api.render.pipeline.VanillaPipelineProvider;
 import de.funboyy.addon.worldedit.cui.core.protocol.WorldEditProtocol;
 import java.util.List;
@@ -26,7 +27,7 @@ import org.enginehub.worldeditcui.render.PipelineProvider;
 public class DefaultWorldEditLoader implements WorldEditLoader {
 
   private static final List<PipelineProvider> RENDER_PIPELINES = List.of(
-      //new OptiFinePipelineProvider(),
+      new OptiFinePipelineProvider(),
       new VanillaPipelineProvider()
   );
 

@@ -1,3 +1,8 @@
+import com.google.gson.GsonBuilder
+import com.google.gson.annotations.SerializedName
+import net.labymod.gradle.core.minecraft.provider.VersionProvider
+import java.nio.file.Files
+
 plugins {
     id("java-library")
     id("net.labymod.gradle")
@@ -33,6 +38,7 @@ labyMod {
                 "1.20.4"
         ) { version, provider ->
             configureRun(provider, version)
+            provider.applyOptiFine(version, true)
         }
 
         subprojects.forEach {
@@ -47,6 +53,34 @@ labyMod {
     }
 }
 
+
+fun VersionProvider.applyOptiFine(version: String, useOptiFine: Boolean) {
+    if (!useOptiFine) {
+        return
+    }
+
+    val extra = project.extra
+    val versionManifest: OptiVersionManifest
+    val gson = GsonBuilder().create()
+    if (!extra.has("of-cache")) {
+
+        val file = rootProject.file("./game-runner/versions.json")
+        if (!file.exists()) {
+            println("Failed to find versions.json")
+            return
+        }
+
+        versionManifest = Files.newBufferedReader(file.toPath()).use { gson.fromJson(it, OptiVersionManifest::class.java) }
+        extra["of-cache"] = gson.toJson(versionManifest)
+    } else {
+        versionManifest = gson.fromJson(extra.get("of-cache") as String, OptiVersionManifest::class.java)
+    }
+    versionManifest.findVersion(version)?.apply {
+        optiFineVersion = this.ofVersion.trim()
+    }
+}
+
+
 subprojects {
     plugins.apply("java-library")
     plugins.apply("net.labymod.gradle")
@@ -58,7 +92,7 @@ subprojects {
     }
 }
 
-fun configureRun(provider: net.labymod.gradle.core.minecraft.provider.VersionProvider, gameVersion: String) {
+fun configureRun(provider: VersionProvider, gameVersion: String) {
     provider.runConfiguration {
         mainClass = "net.minecraft.launchwrapper.Launch"
         jvmArgs("-Dnet.labymod.running-version=${gameVersion}")
@@ -89,5 +123,26 @@ fun configureRun(provider: net.labymod.gradle.core.minecraft.provider.VersionPro
         }
 
         minVersion = mixinMinVersion
+
+        val versionMappings = file("./game-runner/mappings/").resolve("$gameVersion.tsrg")
+        if (versionMappings.exists()) {
+            extraMappings.add(versionMappings)
+        }
+        extraMappings.add(file("./game-runner/mappings/shared.tsrg"))
     }
 }
+
+
+data class OptiVersionManifest(val versions: List<OptiFineVersion>) {
+
+    fun findVersion(gameVersion: String): OptiFineVersion? {
+        return versions.find { it.gameVersion == gameVersion }
+    }
+
+}
+
+data class OptiFineVersion(
+        @SerializedName("game_version") val gameVersion: String,
+        @SerializedName("of_version") val ofVersion: String,
+        @SerializedName("preview") val preview: Boolean
+)
