@@ -19,7 +19,7 @@ public enum ConfiguredColor {
 	CYLINDER_BOX(parse("#CC4C4CCC")),
 	CYLINDER_CENTER(parse("#CC33CCCC"));
 
-  private static final Pattern COLOUR_PATTERN = Pattern.compile("^#[0-9a-f]{6,8}$", Pattern.CASE_INSENSITIVE);
+  private static final Pattern COLOR_PATTERN = Pattern.compile("^#[0-9a-f]{6,8}$", Pattern.CASE_INSENSITIVE);
 
   public static Color parse(final String hex) {
     final int red = Integer.parseInt(hex.substring(1, 3), 16) & 0xff;
@@ -43,7 +43,7 @@ public enum ConfiguredColor {
       return defaultColor;
     }
 
-    return COLOUR_PATTERN.matcher(hex).matches() ? parse(hex) : defaultColor;
+    return COLOR_PATTERN.matcher(hex).matches() ? parse(hex) : defaultColor;
   }
 
 	class Style implements RenderStyle {

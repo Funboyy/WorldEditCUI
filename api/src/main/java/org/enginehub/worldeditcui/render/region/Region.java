@@ -37,7 +37,7 @@ public abstract class Region implements InitialisationFactory {
 
   public void setStyles(final RenderStyle... styles) {
     if (styles.length < this.defaultStyles.length) {
-      throw new IllegalArgumentException("Invalid colour palette supplied for " + this.getType().getName() + " region");
+      throw new IllegalArgumentException("Invalid color palette supplied for " + this.getType().getName() + " region");
     }
 
     this.styles = styles;
