@@ -8,14 +8,10 @@ import de.funboyy.addon.worldedit.cui.api.render.WorldEditRenderer;
 import de.funboyy.addon.worldedit.cui.api.render.pipeline.OptiFinePipelineProvider;
 import de.funboyy.addon.worldedit.cui.api.render.pipeline.VanillaPipelineProvider;
 import de.funboyy.addon.worldedit.cui.core.protocol.WorldEditProtocol;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.inject.Singleton;
 import net.labymod.api.Laby;
-import net.labymod.api.client.network.server.ServerController;
-import net.labymod.api.client.resources.ResourceLocation;
 import net.labymod.api.event.Subscribe;
-import net.labymod.api.event.client.chat.ChatMessageSendEvent;
 import net.labymod.api.event.client.network.server.ServerJoinEvent;
 import net.labymod.api.event.client.network.server.ServerSwitchEvent;
 import net.labymod.api.event.client.network.server.SubServerSwitchEvent;
@@ -68,23 +64,6 @@ public class DefaultWorldEditLoader implements WorldEditLoader {
     this.controller.clear();
 
     this.sendPacket(new VersionPacket(WorldEditProtocol.VERSION));
-  }
-
-  // ToDo: this for debug because of the missing LoginPacket
-
-  @Subscribe
-  public void handleChat(final ChatMessageSendEvent event) {
-    if (!event.getMessage().equals("debug")) {
-      return;
-    }
-
-    event.setCancelled(true);
-
-    final ServerController serverController = Laby.references().serverController();
-    serverController.sendPayload(ResourceLocation.create("minecraft", "register"),
-        "WECUI".getBytes(StandardCharsets.UTF_8));
-
-    this.handleJoin();
   }
 
   @Subscribe
