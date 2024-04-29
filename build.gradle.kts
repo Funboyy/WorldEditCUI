@@ -19,7 +19,7 @@ labyMod {
         displayName = "WorldEdit CUI"
         author = "lahwran, yetanotherx, Mumfrey, TomyLobo, mikroskeem, Funboyy"
         description = "Client-side user interface for WorldEdit"
-        minecraftVersion = "1.8.9<1.20.5"
+        minecraftVersion = "1.8.9<1.20.6"
         version = System.getenv().getOrDefault("VERSION", "0.0.1")
     }
 
@@ -36,7 +36,8 @@ labyMod {
                 "1.20.1",
                 "1.20.2",
                 "1.20.4",
-                "1.20.5"
+                "1.20.5",
+                "1.20.6"
         ) { version, provider ->
             configureRun(provider, version)
             provider.applyOptiFine(version, true)
