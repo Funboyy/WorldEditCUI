@@ -17,7 +17,7 @@ public class VersionedMinecraftHelper implements MinecraftHelper {
   }
 
   @Override
-  public float getPickDistance() {
+  public double getPickDistance() {
     return this.minecraft.gameMode.getPickRange();
   }
 

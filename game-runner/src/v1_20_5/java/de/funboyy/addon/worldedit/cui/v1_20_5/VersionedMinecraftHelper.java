@@ -1,10 +1,11 @@
-package de.funboyy.addon.worldedit.cui.v1_19_3;
+package de.funboyy.addon.worldedit.cui.v1_20_5;
 
 import de.funboyy.addon.worldedit.cui.api.MinecraftHelper;
 import net.labymod.api.client.entity.Entity;
 import net.labymod.api.client.world.phys.hit.HitResult;
 import net.labymod.api.models.Implements;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 
 @Implements(MinecraftHelper.class)
 public class VersionedMinecraftHelper implements MinecraftHelper {
@@ -18,7 +19,7 @@ public class VersionedMinecraftHelper implements MinecraftHelper {
 
   @Override
   public double getPickDistance() {
-    return this.minecraft.gameMode.getPickRange();
+    return this.minecraft.player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
   }
 
   @Override

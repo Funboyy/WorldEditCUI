@@ -9,7 +9,7 @@ public interface MinecraftHelper {
 
   HitResult pick(final Entity entity, final double distance, final float partialTicks, final boolean fluids);
 
-  float getPickDistance();
+  double getPickDistance();
 
   void pushProfiler(final String name);
 
