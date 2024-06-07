@@ -54,8 +54,6 @@ public abstract class MixinLevelRender {
     this.worldEdit$tickDelta = tickDelta;
   }
 
-  // ToDo: make sure this also is possible with OptiFine
-
   @Inject(
       method = "renderLevel",
       at = @At(
