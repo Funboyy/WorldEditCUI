@@ -19,23 +19,23 @@ import org.jetbrains.annotations.Nullable;
 public class BufferBuilderRenderSink implements RenderSink {
 
   private static final RenderType QUADS = new RenderType(Mode.QUADS,
-      VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper().getPositionColorShader());
+      VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper()::getPositionColorShader);
   private static final RenderType LINES = new RenderType(Mode.LINES,
-      VertexFormatType.POSITION_COLOR_NORMAL, WorldEdit.references().renderHelper().getRenderTypeLinesShader());
+      VertexFormatType.POSITION_COLOR_NORMAL, WorldEdit.references().renderHelper()::getRenderTypeLinesShader);
   private static final RenderType LINES_LOOP = new RenderType(Mode.LINES,
-      VertexFormatType.POSITION_COLOR_NORMAL, WorldEdit.references().renderHelper().getRenderTypeLinesShader());
+      VertexFormatType.POSITION_COLOR_NORMAL, WorldEdit.references().renderHelper()::getRenderTypeLinesShader);
 
   private static final RenderType DEBUG_LINES = new RenderType(Mode.DEBUG_LINES,
-      VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper().getPositionColorShader());
+      VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper()::getPositionColorShader);
   private static final RenderType DEBUG_LINES_LOOP = new RenderType(Mode.DEBUG_LINES,
-      VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper().getPositionColorShader());
+      VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper()::getPositionColorShader);
 
   private final GlStateBridge bridge;
   private final RenderPipeline renderPipeline;
   private final Blaze3DGlStatePipeline statePipeline;
   private final RenderHelper renderHelper;
 
-  private final Supplier<Boolean> debug;
+  private final Supplier<Boolean> debugSupplier;
   private final Runnable preFlush;
   private final Runnable postFlush;
   private BufferBuilder builder;
@@ -46,6 +46,7 @@ public class BufferBuilderRenderSink implements RenderSink {
   private double loopX, loopY, loopZ; // track previous vertices for lines_loop
   private double loopFirstX, loopFirstY, loopFirstZ; // track initial vertices for lines_loop
   private boolean canLoop;
+  private boolean debug;
 
   // line state
   private float lastLineWidth = -1;
@@ -55,13 +56,13 @@ public class BufferBuilderRenderSink implements RenderSink {
     this(() -> false, () -> {}, () -> {});
   }
 
-  public BufferBuilderRenderSink(final Supplier<Boolean> debug, final Runnable preFlush, final Runnable postFlush) {
+  public BufferBuilderRenderSink(final Supplier<Boolean> debugSupplier, final Runnable preFlush, final Runnable postFlush) {
     this.bridge = Laby.references().glStateBridge();
     this.renderPipeline = Laby.references().renderPipeline();
     this.statePipeline = Laby.references().blaze3DGlStatePipeline();
     this.renderHelper = WorldEdit.references().renderHelper();
 
-    this.debug = debug;
+    this.debugSupplier = debugSupplier;
     this.preFlush = preFlush;
     this.postFlush = postFlush;
   }
@@ -196,13 +197,15 @@ public class BufferBuilderRenderSink implements RenderSink {
 
   @Override
   public RenderSink beginLineLoop() {
-    this.transitionState(this.debug.get() ? DEBUG_LINES_LOOP : LINES_LOOP);
+    this.debug = this.debugSupplier.get();
+
+    this.transitionState(this.debug ? DEBUG_LINES_LOOP : LINES_LOOP);
     return this;
   }
 
   @Override
   public RenderSink endLineLoop() {
-    this.end(this.debug.get() ? DEBUG_LINES_LOOP : LINES_LOOP);
+    this.end(this.debug ? DEBUG_LINES_LOOP : LINES_LOOP);
 
     if (!this.canLoop) {
       return this;
@@ -234,13 +237,15 @@ public class BufferBuilderRenderSink implements RenderSink {
 
   @Override
   public RenderSink beginLines() {
-    this.transitionState(this.debug.get() ? DEBUG_LINES : LINES);
+    this.debug = this.debugSupplier.get();
+
+    this.transitionState(this.debug ? DEBUG_LINES : LINES);
     return this;
   }
 
   @Override
   public RenderSink endLines() {
-    this.end(this.debug.get() ? DEBUG_LINES : LINES);
+    this.end(this.debug ? DEBUG_LINES : LINES);
     return this;
   }
 
@@ -327,13 +332,13 @@ public class BufferBuilderRenderSink implements RenderSink {
     private final int mode;
     private final VertexFormatType type;
     private final boolean hasNormals;
-    private final Object shader;
+    private final Supplier<Object> shaderSupplier;
 
-    public RenderType(final int mode, final VertexFormatType type, final Object shader) {
+    public RenderType(final int mode, final VertexFormatType type, final Supplier<Object> shaderSupplier) {
       this.mode = mode;
       this.type = type;
       this.hasNormals = type.vertexName().contains("normal");
-      this.shader = shader;
+      this.shaderSupplier = shaderSupplier;
     }
 
     int mode() {
@@ -349,7 +354,7 @@ public class BufferBuilderRenderSink implements RenderSink {
     }
 
     Object shader() {
-      return this.shader;
+      return this.shaderSupplier.get();
     }
 
     boolean mustFlushAfter(final RenderType previous) {

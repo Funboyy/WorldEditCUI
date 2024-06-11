@@ -9,8 +9,13 @@ import org.enginehub.worldeditcui.render.RenderSink;
 
 public final class OptiFinePipelineProvider implements PipelineProvider {
 
+  // we only need to use debug, when using shaders if we have a version newer than 1.16.5,
+  // so we just use the protocol version of 1.16.5 to check it
+  private static final int SHADER_DEBUG_PROTOCOL_VERSION = 754;
+
   private final OptiFine optiFine = Laby.references().optiFine();
   private final ShaderAccessor shader = WorldEdit.references().shaderAccessor();
+  private final int protocolVersion = Laby.labyAPI().minecraft().getProtocolVersion();
 
   @Override
   public String id() {
@@ -29,14 +34,16 @@ public final class OptiFinePipelineProvider implements PipelineProvider {
 
   @Override
   public boolean useDebug() {
-    return true;
-
-    // FixMe: make it so it only uses the debug (small) lines when using shaders
-    /*if (!this.available()) {
+    if (!this.available()) {
       return false;
     }
 
-    return this.optiFine.optiFineConfig().hasShaders();*/
+    // only use debug if version is newer than 1.16.5
+    if (this.protocolVersion <= SHADER_DEBUG_PROTOCOL_VERSION) {
+      return false;
+    }
+
+    return this.optiFine.optiFineConfig().hasShaders();
   }
 
   @Override
