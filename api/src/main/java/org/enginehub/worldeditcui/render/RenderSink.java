@@ -8,7 +8,7 @@ public interface RenderSink {
   RenderSink color(final float red, final float green, final float blue, float alpha);
 
   default RenderSink color(final Color color) {
-    return color(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
+    return this.color(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
   }
 
   default RenderSink color(final LineStyle style) {
