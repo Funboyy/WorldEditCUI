@@ -28,8 +28,21 @@ public final class OptiFinePipelineProvider implements PipelineProvider {
   }
 
   @Override
+  public boolean useDebug() {
+    return true;
+
+    // FixMe: make it so it only uses the debug (small) lines when using shaders
+    /*if (!this.available()) {
+      return false;
+    }
+
+    return this.optiFine.optiFineConfig().hasShaders();*/
+  }
+
+  @Override
   public RenderSink provide() {
     return new BufferBuilderRenderSink(
+        this::useDebug,
         () -> {
           if (!this.available()) {
             return;

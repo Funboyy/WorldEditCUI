@@ -32,7 +32,6 @@ public class DefaultWorldEditLoader implements WorldEditLoader {
   private final WorldEdit controller;
   private final WorldEditRenderer renderer;
 
-  private boolean visible = true;
   private Protocol protocol;
 
   public DefaultWorldEditLoader() {
@@ -60,7 +59,6 @@ public class DefaultWorldEditLoader implements WorldEditLoader {
   }
 
   private void handleJoin() {
-    this.visible = true;
     this.controller.clear();
 
     this.sendPacket(new VersionPacket(WorldEditProtocol.VERSION));
@@ -68,9 +66,7 @@ public class DefaultWorldEditLoader implements WorldEditLoader {
 
   @Subscribe
   public void handleWorldEditRender(final WorldEditRenderEvent event) {
-    if (this.visible) {
-      this.renderer.render(event.tickDelta());
-    }
+    this.renderer.render(event.tickDelta());
   }
 
   @Override

@@ -65,11 +65,11 @@ public class Render3DBox extends RenderRegion {
 
 			// Draw top face
       context.beginLineLoop()
-			.vertex(x1, y2, z1)
-			.vertex(x2, y2, z1)
-			.vertex(x2, y2, z2)
-			.vertex(x1, y2, z2)
-			.endLineLoop();
+        .vertex(x1, y2, z1)
+        .vertex(x2, y2, z1)
+        .vertex(x2, y2, z2)
+        .vertex(x1, y2, z2)
+        .endLineLoop();
 
 			// Draw join top and bottom faces
       context.beginLines()

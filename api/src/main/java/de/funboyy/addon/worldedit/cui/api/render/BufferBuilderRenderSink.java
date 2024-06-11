@@ -1,6 +1,7 @@
 package de.funboyy.addon.worldedit.cui.api.render;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 import net.labymod.api.Laby;
 import net.labymod.api.client.gfx.color.GFXAlphaFunction;
 import net.labymod.api.client.gfx.pipeline.Blaze3DGlStatePipeline;
@@ -24,11 +25,17 @@ public class BufferBuilderRenderSink implements RenderSink {
   private static final RenderType LINES_LOOP = new RenderType(Mode.LINES,
       VertexFormatType.POSITION_COLOR_NORMAL, WorldEdit.references().renderHelper().getRenderTypeLinesShader());
 
+  private static final RenderType DEBUG_LINES = new RenderType(Mode.DEBUG_LINES,
+      VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper().getPositionColorShader());
+  private static final RenderType DEBUG_LINES_LOOP = new RenderType(Mode.DEBUG_LINES,
+      VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper().getPositionColorShader());
+
   private final GlStateBridge bridge;
   private final RenderPipeline renderPipeline;
   private final Blaze3DGlStatePipeline statePipeline;
   private final RenderHelper renderHelper;
 
+  private final Supplier<Boolean> debug;
   private final Runnable preFlush;
   private final Runnable postFlush;
   private BufferBuilder builder;
@@ -45,15 +52,16 @@ public class BufferBuilderRenderSink implements RenderSink {
   private GFXAlphaFunction lastDepthFunc = null;
 
   public BufferBuilderRenderSink() {
-    this(() -> {}, () -> {});
+    this(() -> false, () -> {}, () -> {});
   }
 
-  public BufferBuilderRenderSink(final Runnable preFlush, final Runnable postFlush) {
+  public BufferBuilderRenderSink(final Supplier<Boolean> debug, final Runnable preFlush, final Runnable postFlush) {
     this.bridge = Laby.references().glStateBridge();
     this.renderPipeline = Laby.references().renderPipeline();
     this.statePipeline = Laby.references().blaze3DGlStatePipeline();
     this.renderHelper = WorldEdit.references().renderHelper();
 
+    this.debug = debug;
     this.preFlush = preFlush;
     this.postFlush = postFlush;
   }
@@ -103,7 +111,7 @@ public class BufferBuilderRenderSink implements RenderSink {
     }
 
     final BufferBuilder builder = this.builder;
-    if (this.activeRenderType == LINES_LOOP) {
+    if (this.activeRenderType == LINES_LOOP || this.activeRenderType == DEBUG_LINES_LOOP) {
       // duplicate last
       if (this.canLoop) {
         final FloatVector3 normal = this.activeRenderType.hasNormals() ?
@@ -137,7 +145,7 @@ public class BufferBuilderRenderSink implements RenderSink {
       this.loopY = y;
       this.loopZ = z;
       this.canLoop = true;
-    } else if (this.activeRenderType == LINES) {
+    } else if (this.activeRenderType == LINES || this.activeRenderType == DEBUG_LINES) {
       // we buffer vertices so we can compute normals here
       if (this.canLoop) {
         final FloatVector3 normal = this.activeRenderType.hasNormals() ?
@@ -188,13 +196,13 @@ public class BufferBuilderRenderSink implements RenderSink {
 
   @Override
   public RenderSink beginLineLoop() {
-    this.transitionState(LINES_LOOP);
+    this.transitionState(this.debug.get() ? DEBUG_LINES_LOOP : LINES_LOOP);
     return this;
   }
 
   @Override
   public RenderSink endLineLoop() {
-    this.end(LINES_LOOP);
+    this.end(this.debug.get() ? DEBUG_LINES_LOOP : LINES_LOOP);
 
     if (!this.canLoop) {
       return this;
@@ -226,13 +234,13 @@ public class BufferBuilderRenderSink implements RenderSink {
 
   @Override
   public RenderSink beginLines() {
-    this.transitionState(LINES);
+    this.transitionState(this.debug.get() ? DEBUG_LINES : LINES);
     return this;
   }
 
   @Override
   public RenderSink endLines() {
-    this.end(LINES);
+    this.end(this.debug.get() ? DEBUG_LINES : LINES);
     return this;
   }
 
@@ -310,6 +318,7 @@ public class BufferBuilderRenderSink implements RenderSink {
 
     public static final int QUADS = 7;
     public static final int LINES = 1;
+    public static final int DEBUG_LINES = -5;
 
   }
 
