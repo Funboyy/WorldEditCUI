@@ -2,6 +2,8 @@ package de.funboyy.addon.worldedit.cui.api.protocol.packet;
 
 import de.funboyy.addon.worldedit.cui.api.protocol.PacketMessage;
 import de.funboyy.addon.worldedit.cui.api.protocol.PacketType;
+import de.funboyy.addon.worldedit.cui.api.protocol.WorldEditProtocol;
+import de.funboyy.addon.worldedit.cui.api.protocol.handler.WorldEditHandler;
 
 public class Point2DPacket extends WorldEditPacket {
 
@@ -26,7 +28,7 @@ public class Point2DPacket extends WorldEditPacket {
   }
 
   @Override
-  public void handleIncomingPayload(final PacketMessage message) {
+  public void read(final PacketMessage message) {
     this.multi = message.isMulti();
 
     this.checkParameters(message.getParameters());
@@ -34,6 +36,17 @@ public class Point2DPacket extends WorldEditPacket {
     this.id = message.getInt(0);
     this.x = message.getInt(1);
     this.z = message.getInt(2);
+  }
+
+  @Override
+  public void handle(final WorldEditProtocol protocol) {
+    final WorldEditHandler<Point2DPacket> handler = protocol.getHandler(Point2DPacket.class);
+
+    if (handler == null) {
+      return;
+    }
+
+    handler.handle(this);
   }
 
 }

@@ -2,7 +2,8 @@ package de.funboyy.addon.worldedit.cui.api.protocol.packet;
 
 import de.funboyy.addon.worldedit.cui.api.protocol.PacketMessage;
 import de.funboyy.addon.worldedit.cui.api.protocol.PacketType;
-import net.labymod.serverapi.protocol.packet.Packet;
+import de.funboyy.addon.worldedit.cui.api.protocol.WorldEditProtocol;
+import net.labymod.serverapi.api.packet.Packet;
 
 public abstract class WorldEditPacket implements Packet {
 
@@ -43,11 +44,14 @@ public abstract class WorldEditPacket implements Packet {
     return String.format("between %d and %d", this.getType().getMinParameters(), this.getType().getMaxParameters());
   }
 
-  public void handleIncomingPayload(final PacketMessage message) throws Exception {
+  public void read(final PacketMessage message) throws Exception {
   }
 
-  public byte[] translateOutgoingPayload() {
+  public byte[] write() {
     return new byte[0];
+  }
+
+  public void handle(final WorldEditProtocol protocol) {
   }
 
 }

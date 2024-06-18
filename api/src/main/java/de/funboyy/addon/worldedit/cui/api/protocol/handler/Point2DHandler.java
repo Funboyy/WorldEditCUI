@@ -21,4 +21,9 @@ public class Point2DHandler extends WorldEditHandler<Point2DPacket> {
     selection.setPolygonPoint(packet.getId(), packet.getX(), packet.getZ());
   }
 
+  @Override
+  public Class<Point2DPacket> getPacketClass() {
+    return Point2DPacket.class;
+  }
+
 }

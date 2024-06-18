@@ -29,4 +29,9 @@ public class EllipsoidHandler extends WorldEditHandler<EllipsoidPacket> {
     }
   }
 
+  @Override
+  public Class<EllipsoidPacket> getPacketClass() {
+    return EllipsoidPacket.class;
+  }
+
 }

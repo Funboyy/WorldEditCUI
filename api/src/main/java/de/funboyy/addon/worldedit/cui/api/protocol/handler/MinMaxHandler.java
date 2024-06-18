@@ -21,4 +21,9 @@ public class MinMaxHandler extends WorldEditHandler<MinMaxPacket> {
     selection.setMinMax(packet.getMin(), packet.getMax());
   }
 
+  @Override
+  public Class<MinMaxPacket> getPacketClass() {
+    return MinMaxPacket.class;
+  }
+
 }

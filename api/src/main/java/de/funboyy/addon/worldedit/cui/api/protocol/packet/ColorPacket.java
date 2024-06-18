@@ -2,6 +2,8 @@ package de.funboyy.addon.worldedit.cui.api.protocol.packet;
 
 import de.funboyy.addon.worldedit.cui.api.protocol.PacketMessage;
 import de.funboyy.addon.worldedit.cui.api.protocol.PacketType;
+import de.funboyy.addon.worldedit.cui.api.protocol.WorldEditProtocol;
+import de.funboyy.addon.worldedit.cui.api.protocol.handler.WorldEditHandler;
 
 public class ColorPacket extends WorldEditPacket {
 
@@ -16,7 +18,7 @@ public class ColorPacket extends WorldEditPacket {
   }
 
   @Override
-  public void handleIncomingPayload(final PacketMessage message) {
+  public void read(final PacketMessage message) {
     final String[] parameters = message.getParameters();
     this.multi = message.isMulti();
 
@@ -27,4 +29,14 @@ public class ColorPacket extends WorldEditPacket {
     System.arraycopy(parameters, 0, this.colors, 0, parameters.length);
   }
 
+  @Override
+  public void handle(final WorldEditProtocol protocol) {
+    final WorldEditHandler<ColorPacket> handler = protocol.getHandler(ColorPacket.class);
+
+    if (handler == null) {
+      return;
+    }
+
+    handler.handle(this);
+  }
 }

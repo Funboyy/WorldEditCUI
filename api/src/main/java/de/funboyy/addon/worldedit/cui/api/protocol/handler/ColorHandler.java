@@ -42,4 +42,9 @@ public class ColorHandler extends WorldEditHandler<ColorPacket> {
     selection.setStyles(styles);
   }
 
+  @Override
+  public Class<ColorPacket> getPacketClass() {
+    return ColorPacket.class;
+  }
+
 }

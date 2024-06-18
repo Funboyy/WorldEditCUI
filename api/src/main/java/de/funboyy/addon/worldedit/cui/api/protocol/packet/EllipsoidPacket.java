@@ -2,6 +2,8 @@ package de.funboyy.addon.worldedit.cui.api.protocol.packet;
 
 import de.funboyy.addon.worldedit.cui.api.protocol.PacketMessage;
 import de.funboyy.addon.worldedit.cui.api.protocol.PacketType;
+import de.funboyy.addon.worldedit.cui.api.protocol.WorldEditProtocol;
+import de.funboyy.addon.worldedit.cui.api.protocol.handler.WorldEditHandler;
 
 public class EllipsoidPacket extends WorldEditPacket {
 
@@ -31,7 +33,7 @@ public class EllipsoidPacket extends WorldEditPacket {
   }
 
   @Override
-  public void handleIncomingPayload(final PacketMessage message) {
+  public void read(final PacketMessage message) {
     this.multi = message.isMulti();
 
     this.checkParameters(message.getParameters());
@@ -48,6 +50,17 @@ public class EllipsoidPacket extends WorldEditPacket {
     this.x = message.getDouble(1);
     this.y = message.getDouble(2);
     this.z = message.getDouble(3);
+  }
+
+  @Override
+  public void handle(final WorldEditProtocol protocol) {
+    final WorldEditHandler<EllipsoidPacket> handler = protocol.getHandler(EllipsoidPacket.class);
+
+    if (handler == null) {
+      return;
+    }
+
+    handler.handle(this);
   }
 
 }

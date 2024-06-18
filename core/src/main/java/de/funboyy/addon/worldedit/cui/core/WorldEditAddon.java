@@ -1,6 +1,5 @@
 package de.funboyy.addon.worldedit.cui.core;
 
-import de.funboyy.addon.worldedit.cui.core.protocol.WorldEditProtocol;
 import net.labymod.api.addon.LabyAddon;
 import net.labymod.api.models.addon.annotation.AddonMain;
 import org.enginehub.worldeditcui.WorldEdit;
@@ -14,8 +13,7 @@ public class WorldEditAddon extends LabyAddon<WorldEditConfiguration> {
 
     WorldEdit.init(this.referenceStorageAccessor());
 
-    final WorldEditProtocol protocol = new WorldEditProtocol();
-    protocol.register();
+    this.registerListener(new WorldEditListener());
   }
 
   @Override
