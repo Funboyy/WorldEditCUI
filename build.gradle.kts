@@ -52,8 +52,7 @@ labyMod {
     }
 
     addonDev {
-        // ToDo: change back to production release as soon as 1.21 is also available in production
-        snapshotRelease()
+        productionRelease()
     }
 }
 
