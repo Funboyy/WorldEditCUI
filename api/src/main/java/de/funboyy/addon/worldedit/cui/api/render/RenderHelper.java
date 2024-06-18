@@ -1,7 +1,7 @@
 package de.funboyy.addon.worldedit.cui.api.render;
 
+import net.labymod.api.client.render.vertex.BufferBuilder;
 import net.labymod.api.reference.annotation.Referenceable;
-import org.jetbrains.annotations.Nullable;
 
 @Referenceable
 public interface RenderHelper {
@@ -11,7 +11,6 @@ public interface RenderHelper {
   }
 
   default void setShader(final Object shader) {
-
   }
 
   default Object getPositionColorShader() {
@@ -22,7 +21,7 @@ public interface RenderHelper {
     return null;
   }
 
-  void endTesselator();
+  void endTesselator(final BufferBuilder builder);
 
   default void applyModelViewMatrix() {
   }

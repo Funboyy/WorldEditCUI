@@ -2,6 +2,7 @@ package de.funboyy.addon.worldedit.cui.v1_19_2;
 
 import com.mojang.blaze3d.vertex.Tesselator;
 import de.funboyy.addon.worldedit.cui.api.render.RenderHelper;
+import net.labymod.api.client.render.vertex.BufferBuilder;
 import net.labymod.api.models.Implements;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
@@ -34,7 +35,7 @@ public class VersionedRenderHelper implements RenderHelper {
   }
 
   @Override
-  public void endTesselator() {
+  public void endTesselator(final BufferBuilder builder) {
     Tesselator.getInstance().end();
   }
 
