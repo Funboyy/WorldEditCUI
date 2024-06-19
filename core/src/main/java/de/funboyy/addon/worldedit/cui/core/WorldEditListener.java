@@ -8,6 +8,7 @@ import de.funboyy.addon.worldedit.cui.api.render.WorldEditRenderer;
 import de.funboyy.addon.worldedit.cui.api.render.pipeline.OptiFinePipelineProvider;
 import de.funboyy.addon.worldedit.cui.api.render.pipeline.VanillaPipelineProvider;
 import java.util.List;
+import net.labymod.api.client.resources.ResourceLocation;
 import net.labymod.api.event.Subscribe;
 import net.labymod.api.event.client.network.server.NetworkPayloadEvent;
 import net.labymod.api.event.client.network.server.NetworkPayloadEvent.Side;
@@ -70,10 +71,9 @@ public class WorldEditListener {
       return;
     }
 
-    final String identifier = event.identifier().toString();
+    final ResourceLocation identifier = event.identifier();
 
-    if (!identifier.equals(WorldEditProtocol.IDENTIFIER.toString())
-        && !identifier.equals(WorldEditProtocol.LEGACY_IDENTIFIER.toString())) {
+    if (!identifier.equals(WorldEditProtocol.IDENTIFIER) && !identifier.equals(WorldEditProtocol.LEGACY_IDENTIFIER)) {
       return;
     }
 
