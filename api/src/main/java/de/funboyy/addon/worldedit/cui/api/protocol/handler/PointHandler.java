@@ -35,4 +35,9 @@ public class PointHandler extends WorldEditHandler<PointPacket> {
     selection.setCuboidPoint(id, packet.getX(), packet.getY(), packet.getZ());
   }
 
+  @Override
+  public Class<PointPacket> getPacketClass() {
+    return PointPacket.class;
+  }
+
 }

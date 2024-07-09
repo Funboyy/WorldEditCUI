@@ -29,4 +29,9 @@ public class SelectionHandler extends WorldEditHandler<SelectionPacket> {
     super.getController().setSelection(id, selection);
   }
 
+  @Override
+  public Class<SelectionPacket> getPacketClass() {
+    return SelectionPacket.class;
+  }
+
 }

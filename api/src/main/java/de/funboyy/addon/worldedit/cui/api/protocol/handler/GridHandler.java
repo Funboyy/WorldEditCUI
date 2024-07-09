@@ -33,4 +33,9 @@ public class GridHandler extends WorldEditHandler<GridPacket> {
     selection.setRenderType(RenderType.ANY);
   }
 
+  @Override
+  public Class<GridPacket> getPacketClass() {
+    return GridPacket.class;
+  }
+
 }

@@ -1,28 +1,24 @@
 package de.funboyy.addon.worldedit.cui.core;
 
-import de.funboyy.addon.worldedit.cui.api.WorldEditLoader;
 import de.funboyy.addon.worldedit.cui.api.event.WorldEditRenderEvent;
+import de.funboyy.addon.worldedit.cui.api.protocol.WorldEditProtocol;
 import de.funboyy.addon.worldedit.cui.api.protocol.packet.VersionPacket;
 import de.funboyy.addon.worldedit.cui.api.protocol.packet.WorldEditPacket;
 import de.funboyy.addon.worldedit.cui.api.render.WorldEditRenderer;
 import de.funboyy.addon.worldedit.cui.api.render.pipeline.OptiFinePipelineProvider;
 import de.funboyy.addon.worldedit.cui.api.render.pipeline.VanillaPipelineProvider;
-import de.funboyy.addon.worldedit.cui.core.protocol.WorldEditProtocol;
 import java.util.List;
-import javax.inject.Singleton;
-import net.labymod.api.Laby;
+import net.labymod.api.client.resources.ResourceLocation;
 import net.labymod.api.event.Subscribe;
+import net.labymod.api.event.client.network.server.NetworkPayloadEvent;
+import net.labymod.api.event.client.network.server.NetworkPayloadEvent.Side;
 import net.labymod.api.event.client.network.server.ServerJoinEvent;
 import net.labymod.api.event.client.network.server.ServerSwitchEvent;
 import net.labymod.api.event.client.network.server.SubServerSwitchEvent;
-import net.labymod.api.models.Implements;
-import net.labymod.serverapi.protocol.packet.protocol.Protocol;
 import org.enginehub.worldeditcui.WorldEdit;
 import org.enginehub.worldeditcui.render.PipelineProvider;
 
-@Singleton
-@Implements(WorldEditLoader.class)
-public class DefaultWorldEditLoader implements WorldEditLoader {
+public class WorldEditListener {
 
   private static final List<PipelineProvider> RENDER_PIPELINES = List.of(
       new OptiFinePipelineProvider(),
@@ -31,16 +27,16 @@ public class DefaultWorldEditLoader implements WorldEditLoader {
 
   private final WorldEdit controller;
   private final WorldEditRenderer renderer;
+  private final WorldEditProtocol protocol;
 
-  private Protocol protocol;
-
-  public DefaultWorldEditLoader() {
+  public WorldEditListener() {
     this.renderer = new WorldEditRenderer(RENDER_PIPELINES);
 
     this.controller = this.renderer.getController();
     this.controller.initialise();
 
-    Laby.labyAPI().eventBus().registerListener(this);
+    this.protocol = new WorldEditProtocol();
+    this.protocol.register(this.controller);
   }
 
   @Subscribe
@@ -69,22 +65,23 @@ public class DefaultWorldEditLoader implements WorldEditLoader {
     this.renderer.render(event.tickDelta());
   }
 
-  @Override
-  public void registerProtocol(final Protocol protocol) {
-    this.protocol = protocol;
+  @Subscribe
+  public void handleNetworkPayload(final NetworkPayloadEvent event) {
+    if (event.side() != Side.RECEIVE) {
+      return;
+    }
+
+    final ResourceLocation identifier = event.identifier();
+
+    if (!identifier.equals(WorldEditProtocol.IDENTIFIER) && !identifier.equals(WorldEditProtocol.LEGACY_IDENTIFIER)) {
+      return;
+    }
+
+    this.protocol.handleIncoming(event.getPayload());
   }
 
   private void sendPacket(final WorldEditPacket packet) {
-    if (this.protocol == null) {
-      throw new IllegalStateException("Cannot send the packet, because there was no protocol registered.");
-    }
-
     this.protocol.sendPacket(packet);
-  }
-
-  @Override
-  public WorldEdit getController() {
-    return this.controller;
   }
 
 }

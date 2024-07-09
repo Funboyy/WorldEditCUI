@@ -17,10 +17,10 @@ public class VersionPacket extends WorldEditPacket {
   }
 
   @Override
-  public byte[] translateOutgoingPayload() {
+  public byte[] write() {
     final String payload = super.getType().getTypeId() + "|" + this.version;
 
-    return payload.getBytes(StandardCharsets.UTF_8);
+    return  payload.getBytes(StandardCharsets.UTF_8);
   }
 
 }

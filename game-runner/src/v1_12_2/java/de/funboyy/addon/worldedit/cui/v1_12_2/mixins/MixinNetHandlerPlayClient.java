@@ -1,6 +1,6 @@
 package de.funboyy.addon.worldedit.cui.v1_12_2.mixins;
 
-import de.funboyy.addon.worldedit.cui.core.protocol.WorldEditProtocol;
+import de.funboyy.addon.worldedit.cui.api.protocol.WorldEditProtocol;
 import io.netty.buffer.Unpooled;
 import java.nio.charset.StandardCharsets;
 import net.minecraft.client.network.NetHandlerPlayClient;

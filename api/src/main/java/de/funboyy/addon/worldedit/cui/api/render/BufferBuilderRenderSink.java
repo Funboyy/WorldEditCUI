@@ -279,7 +279,7 @@ public class BufferBuilderRenderSink implements RenderSink {
         this.renderHelper.setShader(this.activeRenderType.shader());
       }
 
-      this.renderHelper.endTesselator();
+      this.renderHelper.endTesselator(this.builder);
     } finally {
       this.postFlush.run();
       this.builder = null;

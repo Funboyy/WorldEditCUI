@@ -1,6 +1,7 @@
 package de.funboyy.addon.worldedit.cui.v1_12_2;
 
 import de.funboyy.addon.worldedit.cui.api.render.RenderHelper;
+import net.labymod.api.client.render.vertex.BufferBuilder;
 import net.labymod.api.models.Implements;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
@@ -9,7 +10,7 @@ import net.minecraft.client.renderer.Tessellator;
 public class VersionedRenderHelper implements RenderHelper {
 
   @Override
-  public void endTesselator() {
+  public void endTesselator(final BufferBuilder builder) {
     Tessellator.getInstance().draw();
   }
 

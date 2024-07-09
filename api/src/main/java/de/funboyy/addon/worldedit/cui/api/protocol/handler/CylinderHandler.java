@@ -22,4 +22,9 @@ public class CylinderHandler extends WorldEditHandler<CylinderPacket> {
     selection.setCylinderRadius(packet.getRadX(), packet.getRadZ());
   }
 
+  @Override
+  public Class<CylinderPacket> getPacketClass() {
+    return CylinderPacket.class;
+  }
+
 }

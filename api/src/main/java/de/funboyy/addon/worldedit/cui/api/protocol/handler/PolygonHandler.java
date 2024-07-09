@@ -21,4 +21,9 @@ public class PolygonHandler extends WorldEditHandler<PolygonPacket> {
     selection.addPolygon(packet.getVertices());
   }
 
+  @Override
+  public Class<PolygonPacket> getPacketClass() {
+    return PolygonPacket.class;
+  }
+
 }
