@@ -20,7 +20,7 @@ public class VersionPacket extends WorldEditPacket {
   public byte[] write() {
     final String payload = super.getType().getTypeId() + "|" + this.version;
 
-    return  payload.getBytes(StandardCharsets.UTF_8);
+    return payload.getBytes(StandardCharsets.UTF_8);
   }
 
 }

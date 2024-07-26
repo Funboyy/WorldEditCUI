@@ -117,16 +117,7 @@ public abstract class MixinLevelRender {
       return;
     }
 
-    try {
-      RenderSystem.getModelViewStack().pushPose();
-      RenderSystem.getModelViewStack().mulPoseMatrix(this.worldEdit$stack.last().pose());
-      RenderSystem.applyModelViewMatrix();
-
-      Laby.fireEvent(new WorldEditRenderEvent(this.worldEdit$tickDelta));
-    } finally {
-      RenderSystem.getModelViewStack().popPose();
-      RenderSystem.applyModelViewMatrix();
-    }
+    Laby.fireEvent(new WorldEditRenderEvent(this.worldEdit$tickDelta));
   }
 
 }
