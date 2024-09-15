@@ -1,74 +1,64 @@
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import net.labymod.gradle.core.minecraft.provider.VersionProvider
+import net.labymod.labygradle.common.extension.model.GameVersion
+import net.labymod.labygradle.common.extension.model.labymod.ReleaseChannels
 import java.nio.file.Files
 
 plugins {
-    id("java-library")
-    id("net.labymod.gradle")
-    id("net.labymod.gradle.addon")
+    id("net.labymod.labygradle")
+    id("net.labymod.labygradle.addon")
 }
 
+val versions = providers.gradleProperty("net.labymod.minecraft-versions").get().split(";")
+
 group = "org.example"
-version = "1.0.0"
+version = providers.environmentVariable("VERSION").getOrElse("1.0.0")
 
 labyMod {
     defaultPackageName = "de.funboyy.addon.worldedit.cui"
+
+    minecraft {
+        registerVersion(versions.toTypedArray()) {
+            runs {
+                useOptiFine(true)
+
+                mixin {
+                    val versionMappings = file("./game-runner/mappings/").resolve("$versionId.tsrg")
+
+                    if (versionMappings.exists()) {
+                        extraMappings.add(versionMappings)
+                    }
+
+                    extraMappings.add(file("./game-runner/mappings/shared.tsrg"))
+                }
+            }
+        }
+    }
+
     addonInfo {
         namespace = "worldeditcui"
         displayName = "WorldEdit CUI"
         author = "lahwran, yetanotherx, Mumfrey, TomyLobo, mikroskeem, Funboyy"
         description = "Client-side user interface for WorldEdit"
         minecraftVersion = "1.8.9<1.21.1"
-        version = System.getenv().getOrDefault("VERSION", "0.0.1")
-    }
-
-    minecraft {
-        registerVersions(
-                "1.8.9",
-                "1.12.2",
-                "1.16.5",
-                "1.17.1",
-                "1.18.2",
-                "1.19.2",
-                "1.19.3",
-                "1.19.4",
-                "1.20.1",
-                "1.20.2",
-                "1.20.4",
-                "1.20.5",
-                "1.20.6",
-                "1.21",
-                "1.21.1"
-        ) { version, provider ->
-            configureRun(provider, version)
-            provider.applyOptiFine(version, true)
-        }
-
-        subprojects.forEach {
-            if (it.name != "game-runner") {
-                filter(it.name)
-            }
-        }
-    }
-
-    addonDev {
-        productionRelease()
+        version = rootProject.version.toString()
+        releaseChannel = ReleaseChannels.PRODUCTION
     }
 }
 
-
-fun VersionProvider.applyOptiFine(version: String, useOptiFine: Boolean) {
-    if (!useOptiFine) {
+fun GameVersion.useOptiFine(enabled: Boolean) {
+    if (!enabled) {
         return
     }
 
     val extra = project.extra
     val versionManifest: OptiVersionManifest
     val gson = GsonBuilder().create()
+
     if (!extra.has("of-cache")) {
 
         val file = rootProject.file("./game-runner/versions.json")
+
         if (!file.exists()) {
             println("Failed to find versions.json")
             return
@@ -79,59 +69,19 @@ fun VersionProvider.applyOptiFine(version: String, useOptiFine: Boolean) {
     } else {
         versionManifest = gson.fromJson(extra.get("of-cache") as String, OptiVersionManifest::class.java)
     }
-    versionManifest.findVersion(version)?.apply {
-        optiFineVersion = this.ofVersion.trim()
+
+    versionManifest.findVersion(versionId)?.apply {
+        optiFineVersion.set(this.ofVersion.trim())
     }
 }
-
 
 subprojects {
-    plugins.apply("java-library")
-    plugins.apply("net.labymod.gradle")
-    plugins.apply("net.labymod.gradle.addon")
+    plugins.apply("net.labymod.labygradle")
+    plugins.apply("net.labymod.labygradle.addon")
 
-    repositories {
-        maven("https://libraries.minecraft.net/")
-        maven("https://repo.spongepowered.org/repository/maven-public/")
-    }
+    group = rootProject.group
+    version = rootProject.version
 }
-
-fun configureRun(provider: VersionProvider, gameVersion: String) {
-    provider.runConfiguration {
-        mainClass = "net.minecraft.launchwrapper.Launch"
-        jvmArgs("-Dnet.labymod.running-version=${gameVersion}")
-        jvmArgs("-Dmixin.debug=true")
-        jvmArgs("-Dnet.labymod.debugging.all=true")
-        jvmArgs("-Dmixin.env.disableRefMap=true")
-
-        args("--tweakClass", "net.labymod.core.loader.vanilla.launchwrapper.LabyModLaunchWrapperTweaker")
-        args("--labymod-dev-environment", "true")
-        args("--addon-dev-environment", "true")
-    }
-
-    provider.javaVersion = JavaVersion.VERSION_21
-
-    provider.mixin {
-        val mixinMinVersion = when (gameVersion) {
-            "1.8.9", "1.12.2", "1.16.5" -> {
-                "0.6.6"
-            }
-
-            else -> {
-                "0.8.2"
-            }
-        }
-
-        minVersion = mixinMinVersion
-
-        val versionMappings = file("./game-runner/mappings/").resolve("$gameVersion.tsrg")
-        if (versionMappings.exists()) {
-            extraMappings.add(versionMappings)
-        }
-        extraMappings.add(file("./game-runner/mappings/shared.tsrg"))
-    }
-}
-
 
 data class OptiVersionManifest(val versions: List<OptiFineVersion>) {
 
