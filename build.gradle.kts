@@ -42,7 +42,7 @@ labyMod {
         description = "Client-side user interface for WorldEdit"
         minecraftVersion = "1.8.9<1.21.2"
         version = rootProject.version.toString()
-        releaseChannel = ReleaseChannels.INTERNAL
+        releaseChannel = ReleaseChannels.PRODUCTION
     }
 }
 
