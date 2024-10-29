@@ -14,7 +14,6 @@ import org.enginehub.worldeditcui.util.Vector3;
 public class RenderContext implements RenderSink {
 
   private final Blaze3DGlStatePipeline pipeline = Laby.references().blaze3DGlStatePipeline();
-  private final RenderHelper renderHelper = WorldEdit.references().renderHelper();
 
   private Vector3 cameraPos;
   private float dt;
@@ -58,8 +57,7 @@ public class RenderContext implements RenderSink {
   }
 
   public void applyMatrices() {
-    // It would be "this.pipeline.applyModelViewMatrix()" but LabyMod does nothing, when called this method
-    this.renderHelper.applyModelViewMatrix();
+    this.pipeline.applyModelViewMatrix();
   }
 
   public void enableCull() {

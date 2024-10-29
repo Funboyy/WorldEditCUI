@@ -1,13 +1,14 @@
-package de.funboyy.addon.worldedit.cui.v1_21_1;
+package de.funboyy.addon.worldedit.cui.v1_21_3;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferUploader;
 import de.funboyy.addon.worldedit.cui.api.render.RenderHelper;
 import net.labymod.api.client.render.vertex.BufferBuilder;
 import net.labymod.api.models.Implements;
-import net.labymod.v1_21_1.client.render.vertex.VersionedBufferBuilder;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.ShaderInstance;
+import net.labymod.v1_21_3.client.render.vertex.VersionedBufferBuilder;
+import net.minecraft.client.renderer.CompiledShaderProgram;
+import net.minecraft.client.renderer.CoreShaders;
+import net.minecraft.client.renderer.ShaderProgram;
 
 @Implements(RenderHelper.class)
 public class VersionedRenderHelper implements RenderHelper {
@@ -19,21 +20,27 @@ public class VersionedRenderHelper implements RenderHelper {
 
   @Override
   public void setShader(final Object object) {
-    if (!(object instanceof ShaderInstance shader)) {
-      throw new IllegalArgumentException("You can only set a ShaderInstance as shader");
+    if (object instanceof ShaderProgram shader) {
+      RenderSystem.setShader(shader);
+      return;
     }
 
-    RenderSystem.setShader(() -> shader);
+    if (object instanceof CompiledShaderProgram shader) {
+      RenderSystem.setShader(shader);
+      return;
+    }
+
+    throw new IllegalArgumentException("You can only set a ShaderProgram or a CompiledShaderProgram as shader");
   }
 
   @Override
   public Object getPositionColorShader() {
-    return GameRenderer.getPositionColorShader();
+    return CoreShaders.POSITION_COLOR;
   }
 
   @Override
   public Object getRenderTypeLinesShader() {
-    return GameRenderer.getRendertypeLinesShader();
+    return CoreShaders.RENDERTYPE_LINES;
   }
 
   @Override
