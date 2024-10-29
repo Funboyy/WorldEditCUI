@@ -40,7 +40,7 @@ labyMod {
         displayName = "WorldEdit CUI"
         author = "lahwran, yetanotherx, Mumfrey, TomyLobo, mikroskeem, Funboyy"
         description = "Client-side user interface for WorldEdit"
-        minecraftVersion = "1.8.9<1.21.2"
+        minecraftVersion = "1.8.9<1.21.3"
         version = rootProject.version.toString()
         releaseChannel = ReleaseChannels.PRODUCTION
     }
