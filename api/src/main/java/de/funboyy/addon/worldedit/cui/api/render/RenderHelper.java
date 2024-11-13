@@ -23,9 +23,6 @@ public interface RenderHelper {
 
   void endTesselator(final BufferBuilder builder);
 
-  default void applyModelViewMatrix() {
-  }
-
   default void popPose() {
   }
 
