@@ -4,10 +4,8 @@ import de.funboyy.addon.worldedit.cui.api.MinecraftHelper;
 import java.util.List;
 import net.labymod.api.Laby;
 import net.labymod.api.client.Minecraft;
-import net.labymod.api.client.gfx.color.GFXAlphaFunction;
-import net.labymod.api.client.gfx.color.blend.GFXBlendParameter;
+import net.labymod.api.client.gfx.GlConst;
 import net.labymod.api.client.gfx.pipeline.Blaze3DGlStatePipeline;
-import net.labymod.api.client.render.gl.GlStateBridge;
 import net.labymod.api.client.render.matrix.Stack;
 import net.labymod.api.client.world.MinecraftCamera;
 import net.labymod.api.util.math.vector.FloatVector3;
@@ -20,7 +18,6 @@ import org.enginehub.worldeditcui.util.Vector3;
 public class WorldEditRenderer {
 
   private final Minecraft minecraft;
-  private final GlStateBridge bridge;
   private final Blaze3DGlStatePipeline pipeline;
   private final MinecraftHelper helper;
   private final RenderHelper renderHelper;
@@ -32,7 +29,6 @@ public class WorldEditRenderer {
 
   public WorldEditRenderer(final List<PipelineProvider> pipelines) {
     this.minecraft = Laby.labyAPI().minecraft();
-    this.bridge = Laby.references().glStateBridge();
     this.pipeline = Laby.gfx().blaze3DGlStatePipeline();
     this.helper = WorldEdit.references().minecraftHelper();
     this.renderHelper = WorldEdit.references().renderHelper();
@@ -106,10 +102,10 @@ public class WorldEditRenderer {
       this.pipeline.enableBlend();
       this.pipeline.disableTexture();
       this.pipeline.enableDepthTest();
-      this.pipeline.blendFunc(GFXBlendParameter.SOURCE_ALPHA, GFXBlendParameter.ONE_MINUS_SOURCE_ALPHA);
+      this.pipeline.blendFunc(GlConst.GL_SRC_ALPHA, GlConst.GL_ONE_MINUS_SRC_ALPHA);
       this.pipeline.depthMask(true);
 
-      this.bridge.lineWidth(LineStyle.DEFAULT_WIDTH);
+      this.pipeline.setLineWidth(LineStyle.DEFAULT_WIDTH);
 
       final Object oldShader = this.renderHelper.getShader();
 
@@ -121,7 +117,7 @@ public class WorldEditRenderer {
         this.invalidatePipeline();
       }
 
-      this.pipeline.depthFunc(GFXAlphaFunction.LEQUAL);
+      this.pipeline.depthFunc(GlConst.GL_LEQUAL);
 
       this.renderHelper.setShader(oldShader);
 

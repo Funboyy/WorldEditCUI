@@ -1,28 +1,28 @@
 package org.enginehub.worldeditcui.render;
 
-import net.labymod.api.client.gfx.color.GFXAlphaFunction;
+import net.labymod.api.client.gfx.GlConst;
 import net.labymod.api.util.Color;
 
 public interface RenderStyle {
 
   enum RenderType {
 
-    ANY(GFXAlphaFunction.ALWAYS),
-    HIDDEN(GFXAlphaFunction.GEQUAL),
-    VISIBLE(GFXAlphaFunction.LESS);
+    ANY(GlConst.GL_ALWAYS),
+    HIDDEN(GlConst.GL_GEQUAL),
+    VISIBLE(GlConst.GL_LESS);
 
-    private final GFXAlphaFunction alphaFunction;
+    private final int depthFunction;
 
-    RenderType(final GFXAlphaFunction alphaFunction) {
-      this.alphaFunction = alphaFunction;
+    RenderType(final int depthFunction) {
+      this.depthFunction = depthFunction;
     }
 
     public boolean matches(final RenderType other) {
       return other == RenderType.ANY || other == this;
     }
 
-    public GFXAlphaFunction getDepthFunc() {
-      return this.alphaFunction;
+    public int getDepthFunc() {
+      return this.depthFunction;
     }
 
   }

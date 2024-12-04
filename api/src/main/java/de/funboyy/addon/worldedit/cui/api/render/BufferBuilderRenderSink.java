@@ -3,10 +3,8 @@ package de.funboyy.addon.worldedit.cui.api.render;
 import java.util.Objects;
 import java.util.function.Supplier;
 import net.labymod.api.Laby;
-import net.labymod.api.client.gfx.color.GFXAlphaFunction;
 import net.labymod.api.client.gfx.pipeline.Blaze3DGlStatePipeline;
 import net.labymod.api.client.render.RenderPipeline;
-import net.labymod.api.client.render.gl.GlStateBridge;
 import net.labymod.api.client.render.vertex.BufferBuilder;
 import net.labymod.api.client.render.vertex.VertexFormatType;
 import net.labymod.api.util.math.vector.FloatVector3;
@@ -30,7 +28,6 @@ public class BufferBuilderRenderSink implements RenderSink {
   private static final RenderType DEBUG_LINES_LOOP = new RenderType(Mode.DEBUG_LINES,
       VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper()::getPositionColorShader);
 
-  private final GlStateBridge bridge;
   private final RenderPipeline renderPipeline;
   private final Blaze3DGlStatePipeline statePipeline;
   private final RenderHelper renderHelper;
@@ -50,14 +47,13 @@ public class BufferBuilderRenderSink implements RenderSink {
 
   // line state
   private float lastLineWidth = -1;
-  private GFXAlphaFunction lastDepthFunc = null;
+  private int lastDepthFunc = -1;
 
   public BufferBuilderRenderSink() {
     this(() -> false, () -> {}, () -> {});
   }
 
   public BufferBuilderRenderSink(final Supplier<Boolean> debugSupplier, final Runnable preFlush, final Runnable postFlush) {
-    this.bridge = Laby.references().glStateBridge();
     this.renderPipeline = Laby.references().renderPipeline();
     this.statePipeline = Laby.references().blaze3DGlStatePipeline();
     this.renderHelper = WorldEdit.references().renderHelper();
@@ -91,11 +87,11 @@ public class BufferBuilderRenderSink implements RenderSink {
     if (this.active && this.activeRenderType != null) {
       this.canFlush = true;
       this.builder = this.renderPipeline.createBufferBuilder();
-      this.bridge.color4f(1.0f, 1.0f, 1.0f, 1.0f);
+      this.statePipeline.color4f(1.0f, 1.0f, 1.0f, 1.0f);
       this.builder.begin(this.activeRenderType.mode(), this.activeRenderType.type());
     }
 
-    this.bridge.lineWidth(this.lastLineWidth = line.lineWidth);
+    this.statePipeline.setLineWidth(this.lastLineWidth = line.lineWidth);
     this.statePipeline.depthFunc(this.lastDepthFunc = line.renderType.getDepthFunc());
 
     return true;
@@ -310,7 +306,7 @@ public class BufferBuilderRenderSink implements RenderSink {
 
     if (this.activeRenderType == null || this.activeRenderType.mode() != renderType.mode()) {
       this.canFlush = true;
-      this.bridge.color4f(1.0f, 1.0f, 1.0f, 1.0f);
+      this.statePipeline.color4f(1.0f, 1.0f, 1.0f, 1.0f);
       this.builder = this.renderPipeline.createBufferBuilder();
       this.builder.begin(renderType.mode(), renderType.type());
     }
