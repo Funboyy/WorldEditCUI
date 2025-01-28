@@ -1,5 +1,7 @@
 package de.funboyy.addon.worldedit.cui.v1_21_4.mixins;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.framegraph.FramePass;
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -40,7 +42,7 @@ public abstract class MixinLevelRender {
   public abstract RenderTarget getTranslucentTarget();
 
   @Shadow @Nullable
-  public abstract PostChain getTransparencyChain();
+  protected abstract PostChain getTransparencyChain();
 
   @Unique
   private Float worldEdit$tickDelta;
@@ -111,27 +113,34 @@ public abstract class MixinLevelRender {
     });
   }
 
-  @Inject(
-      method = "lambda$addMainPass$1",
+  @WrapOperation(
+      method = "addMainPass",
       at = @At(
-          value = "RETURN"
+          value = "INVOKE",
+          target = "Lcom/mojang/blaze3d/framegraph/FramePass;executes(Ljava/lang/Runnable;)V"
       )
   )
-  private void worldEdit$renderLast(final CallbackInfo callbackInfo) {
-    if (this.getTransparencyChain() != null) {
-      return;
-    }
+  private void worldEdit$renderLast(final FramePass framePass, final Runnable task, final Operation<Void> original) {
+    Runnable wrappedTask = () -> {
+      task.run();
 
-    try {
-      final PoseStack stack = MinecraftUtil.levelRenderContext().getPoseStack();
+        if (this.getTransparencyChain() != null) {
+        return;
+      }
 
-      RenderSystem.getModelViewStack().pushMatrix();
-      RenderSystem.getModelViewStack().mul(stack.last().pose());
+      try {
+        final PoseStack stack = MinecraftUtil.levelRenderContext().getPoseStack();
 
-      Laby.fireEvent(new WorldEditRenderEvent(this.worldEdit$tickDelta));
-    } finally {
-      RenderSystem.getModelViewStack().popMatrix();
-    }
+        RenderSystem.getModelViewStack().pushMatrix();
+        RenderSystem.getModelViewStack().mul(stack.last().pose());
+
+        Laby.fireEvent(new WorldEditRenderEvent(this.worldEdit$tickDelta));
+      } finally {
+        RenderSystem.getModelViewStack().popMatrix();
+      }
+    };
+
+    original.call(framePass, wrappedTask);
   }
 
 }
