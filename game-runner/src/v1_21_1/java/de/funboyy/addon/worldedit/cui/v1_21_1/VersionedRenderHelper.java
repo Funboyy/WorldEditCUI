@@ -13,26 +13,26 @@ import net.minecraft.client.renderer.ShaderInstance;
 public class VersionedRenderHelper implements RenderHelper {
 
   @Override
-  public Object getShader() {
+  public Object getRenderResource() {
     return RenderSystem.getShader();
   }
 
   @Override
-  public void setShader(final Object object) {
+  public void setRenderResource(final Object object) {
     if (!(object instanceof ShaderInstance shader)) {
-      throw new IllegalArgumentException("You can only set a ShaderInstance as shader");
+      throw new IllegalArgumentException("You can only set a ShaderInstance as render resource");
     }
 
     RenderSystem.setShader(() -> shader);
   }
 
   @Override
-  public Object getPositionColorShader() {
+  public Object getQuadsRenderResource() {
     return GameRenderer.getPositionColorShader();
   }
 
   @Override
-  public Object getRenderTypeLinesShader() {
+  public Object getLinesRenderResource() {
     return GameRenderer.getRendertypeLinesShader();
   }
 

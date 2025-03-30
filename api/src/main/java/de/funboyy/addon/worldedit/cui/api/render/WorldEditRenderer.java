@@ -107,7 +107,7 @@ public class WorldEditRenderer {
 
       this.pipeline.setLineWidth(LineStyle.DEFAULT_WIDTH);
 
-      final Object oldShader = this.renderHelper.getShader();
+      final Object oldRenderResource = this.renderHelper.getRenderResource();
 
       try {
         this.controller.renderSelections(this.context);
@@ -119,7 +119,7 @@ public class WorldEditRenderer {
 
       this.pipeline.depthFunc(GlConst.GL_LEQUAL);
 
-      this.renderHelper.setShader(oldShader);
+      this.renderHelper.setRenderResource(oldRenderResource);
 
       this.pipeline.enableTexture();
       this.pipeline.disableBlend();

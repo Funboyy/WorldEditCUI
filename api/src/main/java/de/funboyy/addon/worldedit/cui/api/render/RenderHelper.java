@@ -6,19 +6,23 @@ import net.labymod.api.reference.annotation.Referenceable;
 @Referenceable
 public interface RenderHelper {
 
-  default Object getShader() {
+  default Object getRenderResource() {
     return null;
   }
 
-  default void setShader(final Object shader) {
+  default void setRenderResource(final Object shader) {
   }
 
-  default Object getPositionColorShader() {
+  default Object getQuadsRenderResource() {
     return null;
   }
 
-  default Object getRenderTypeLinesShader() {
+  default Object getLinesRenderResource() {
     return null;
+  }
+
+  default Object getDebugLinesRenderResource() {
+    return this.getQuadsRenderResource();
   }
 
   void endTesselator(final BufferBuilder builder);

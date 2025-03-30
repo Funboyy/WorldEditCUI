@@ -14,12 +14,12 @@ import net.minecraft.client.renderer.ShaderProgram;
 public class VersionedRenderHelper implements RenderHelper {
 
   @Override
-  public Object getShader() {
+  public Object getRenderResource() {
     return RenderSystem.getShader();
   }
 
   @Override
-  public void setShader(final Object object) {
+  public void setRenderResource(final Object object) {
     if (object instanceof ShaderProgram shader) {
       RenderSystem.setShader(shader);
       return;
@@ -30,16 +30,16 @@ public class VersionedRenderHelper implements RenderHelper {
       return;
     }
 
-    throw new IllegalArgumentException("You can only set a ShaderProgram or a CompiledShaderProgram as shader");
+    throw new IllegalArgumentException("You can only set a ShaderProgram or a CompiledShaderProgram as render resource");
   }
 
   @Override
-  public Object getPositionColorShader() {
+  public Object getQuadsRenderResource() {
     return CoreShaders.POSITION_COLOR;
   }
 
   @Override
-  public Object getRenderTypeLinesShader() {
+  public Object getLinesRenderResource() {
     return CoreShaders.RENDERTYPE_LINES;
   }
 
