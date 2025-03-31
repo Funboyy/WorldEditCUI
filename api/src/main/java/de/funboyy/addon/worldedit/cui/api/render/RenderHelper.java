@@ -10,7 +10,7 @@ public interface RenderHelper {
     return null;
   }
 
-  default void setRenderResource(final Object shader) {
+  default void setRenderResource(final Object object) {
   }
 
   default Object getQuadsRenderResource() {
