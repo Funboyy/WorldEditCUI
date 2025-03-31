@@ -25,7 +25,7 @@ public interface RenderHelper {
     return this.getQuadsRenderResource();
   }
 
-  void endTesselator(final BufferBuilder builder);
+  void endTesselator(final BufferBuilder builder, final int depthFunc);
 
   default void popPose() {
   }

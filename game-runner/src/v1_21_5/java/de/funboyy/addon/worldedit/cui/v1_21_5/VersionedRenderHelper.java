@@ -9,8 +9,10 @@ import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import de.funboyy.addon.worldedit.cui.api.render.RenderHelper;
+import de.funboyy.addon.worldedit.cui.v1_21_5.WorldEditRenderPipelines.Pipeline;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
+import net.labymod.api.client.gfx.GlConst;
 import net.labymod.api.client.render.vertex.BufferBuilder;
 import net.labymod.api.models.Implements;
 import net.labymod.v1_21_5.client.render.vertex.VersionedBufferBuilder;
@@ -19,7 +21,7 @@ import net.minecraft.client.Minecraft;
 @Implements(RenderHelper.class)
 public class VersionedRenderHelper implements RenderHelper {
 
-  private RenderPipeline pipeline = null;
+  private Pipeline pipeline = null;
 
   @Override
   public Object getRenderResource() {
@@ -33,42 +35,51 @@ public class VersionedRenderHelper implements RenderHelper {
       return;
     }
 
-    if (object instanceof RenderPipeline renderPipeline) {
-      this.pipeline = renderPipeline;
+    if (object instanceof Pipeline pipelineType) {
+      this.pipeline = pipelineType;
       return;
     }
 
-    throw new IllegalArgumentException("You can only set a RenderPipeline as render resource");
+    throw new IllegalArgumentException("You can only set a Pipeline as render resource");
   }
 
   @Override
   public Object getQuadsRenderResource() {
-    return WorldEditRenderPipelines.QUADS;
+    return Pipeline.QUADS;
   }
 
   @Override
   public Object getLinesRenderResource() {
-    return WorldEditRenderPipelines.LINES;
+    return Pipeline.LINES;
   }
 
   @Override
   public Object getDebugLinesRenderResource() {
-    return WorldEditRenderPipelines.DEBUG_LINES;
+    return Pipeline.DEBUG_LINES;
   }
 
   @Override
-  public void endTesselator(final BufferBuilder builder) {
+  public void endTesselator(final BufferBuilder builder, final int depthFunc) {
     final VersionedBufferBuilder versionedBuilder = (VersionedBufferBuilder) builder;
 
     versionedBuilder.end();
 
-    this.draw(versionedBuilder.renderedBuffer());
+    final RenderPipeline pipeline;
+
+    switch (depthFunc) {
+      case GlConst.GL_ALWAYS ->
+          pipeline = this.pipeline.any();
+      case GlConst.GL_GEQUAL ->
+          pipeline = this.pipeline.hidden();
+      default ->
+          pipeline = this.pipeline.visible();
+    }
+
+    this.draw(pipeline, versionedBuilder.renderedBuffer());
   }
 
   // this is the same as 'RenderType#draw' maybe use it in the future
-  private void draw(final MeshData meshData) {
-    final RenderPipeline pipeline = this.pipeline;
-
+  private void draw(final RenderPipeline pipeline, final MeshData meshData) {
     try {
       final GpuBuffer vertexBuffer = pipeline.getVertexFormat().uploadImmediateIndexBuffer(meshData.vertexBuffer());
 

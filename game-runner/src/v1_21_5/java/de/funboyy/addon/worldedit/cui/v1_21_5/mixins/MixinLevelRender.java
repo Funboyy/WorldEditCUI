@@ -123,8 +123,6 @@ public abstract class MixinLevelRender {
         RenderSystem.getModelViewStack().pushMatrix();
         RenderSystem.getModelViewStack().mul(stack.last().pose());
 
-        // this no longer renders the selection through blocks, maybe fix
-        // (it was never the case with graphics being 'Fabulous')
         Laby.fireEvent(new WorldEditRenderEvent(this.worldEdit$tickDelta));
       } finally {
         RenderSystem.getModelViewStack().popMatrix();

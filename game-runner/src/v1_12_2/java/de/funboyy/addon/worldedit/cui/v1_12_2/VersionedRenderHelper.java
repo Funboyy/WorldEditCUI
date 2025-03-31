@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.Tessellator;
 public class VersionedRenderHelper implements RenderHelper {
 
   @Override
-  public void endTesselator(final BufferBuilder builder) {
+  public void endTesselator(final BufferBuilder builder, final int depthFunc) {
     Tessellator.getInstance().draw();
   }
 

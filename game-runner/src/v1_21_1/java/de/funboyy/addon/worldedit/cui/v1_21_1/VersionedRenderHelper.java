@@ -37,7 +37,7 @@ public class VersionedRenderHelper implements RenderHelper {
   }
 
   @Override
-  public void endTesselator(final BufferBuilder builder) {
+  public void endTesselator(final BufferBuilder builder, final int depthFunc) {
     final VersionedBufferBuilder versionedBuilder = (VersionedBufferBuilder) builder;
 
     versionedBuilder.end();
