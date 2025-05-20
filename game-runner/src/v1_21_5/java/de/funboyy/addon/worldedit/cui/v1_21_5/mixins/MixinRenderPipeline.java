@@ -27,20 +27,33 @@ public class MixinRenderPipeline {
   @Mutable
   private DepthTestFunction depthTestFunction;
 
+  @Final
+  @Shadow
+  @Mutable
+  private boolean writeDepth;
+
   @Unique
   private DepthTestFunction worldEdit$storedDepthTestFunction;
 
-  public void accessor$storeDepthTestFunction() {
+  @Unique
+  private boolean worldEdit$storedWriteDepth;
+
+  public void accessor$storeDepth() {
     this.worldEdit$storedDepthTestFunction = this.depthTestFunction;
+    this.worldEdit$storedWriteDepth = this.writeDepth;
   }
 
   public void accessor$setDepthTestFunction(final DepthTestFunction depthFunction) {
-    this.worldEdit$storedDepthTestFunction = this.depthTestFunction;
     this.depthTestFunction = depthFunction;
   }
 
-  public void accessor$restoreDepthTestFunction() {
+  public void accessor$setDepthWrite(final boolean depthWrite) {
+    this.writeDepth = depthWrite;
+  }
+
+  public void accessor$restoreDepth() {
     this.depthTestFunction = this.worldEdit$storedDepthTestFunction;
+    this.writeDepth = this.worldEdit$storedWriteDepth;
   }
 
 }

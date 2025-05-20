@@ -4,10 +4,12 @@ import com.mojang.blaze3d.platform.DepthTestFunction;
 
 public interface RenderPipelineAccessor {
 
-  void storeDepthTestFunction();
+  void storeDepth();
 
   void setDepthTestFunction(final DepthTestFunction depthFunction);
 
-  void restoreDepthTestFunction();
+  void setDepthWrite(final boolean depthWrite);
+
+  void restoreDepth();
 
 }

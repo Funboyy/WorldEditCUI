@@ -50,19 +50,27 @@ public class VersionedRenderHelper implements RenderHelper {
 
     versionedBuilder.end();
 
-    final DepthTestFunction depthFunction = switch (depthFunc) {
-      case GlConst.GL_ALWAYS -> DepthTestFunction.NO_DEPTH_TEST;
-      case GlConst.GL_GEQUAL -> DepthTestFunction.GREATER_DEPTH_TEST;
-      default -> DepthTestFunction.LESS_DEPTH_TEST;
-    };
-
     final RenderPipelineAccessor pipeline = (RenderPipelineAccessor) this.renderType.getRenderPipeline();
-    pipeline.storeDepthTestFunction();
-    pipeline.setDepthTestFunction(depthFunction);
+    pipeline.storeDepth();
+    
+    switch (depthFunc) {
+      case GlConst.GL_ALWAYS -> {
+        pipeline.setDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST);
+        pipeline.setDepthWrite(true);
+      }
+      case GlConst.GL_GEQUAL -> {
+        pipeline.setDepthTestFunction(DepthTestFunction.GREATER_DEPTH_TEST);
+        pipeline.setDepthWrite(false);
+      }
+      default -> {
+        pipeline.setDepthTestFunction(DepthTestFunction.LEQUAL_DEPTH_TEST);
+        pipeline.setDepthWrite(true);
+      }
+    }
 
     this.renderType.draw(versionedBuilder.renderedBuffer());
 
-    pipeline.restoreDepthTestFunction();
+    pipeline.restoreDepth();
   }
 
 }
