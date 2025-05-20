@@ -1,61 +1,47 @@
 package de.funboyy.addon.worldedit.cui.v1_21_5;
 
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import de.funboyy.addon.worldedit.cui.api.render.RenderHelper;
-import de.funboyy.addon.worldedit.cui.v1_21_5.WorldEditRenderPipelines.Pipeline;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
 import net.labymod.api.client.gfx.GlConst;
 import net.labymod.api.client.render.vertex.BufferBuilder;
 import net.labymod.api.models.Implements;
 import net.labymod.v1_21_5.client.render.vertex.VersionedBufferBuilder;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderType;
 
 @Implements(RenderHelper.class)
 public class VersionedRenderHelper implements RenderHelper {
 
-  private Pipeline pipeline = null;
-
-  @Override
-  public Object getRenderResource() {
-    return this.pipeline;
-  }
+  private RenderType renderType = null;
 
   @Override
   public void setRenderResource(final Object object) {
     if (object == null) {
-      this.pipeline = null;
+      this.renderType = null;
       return;
     }
 
-    if (object instanceof Pipeline pipelineType) {
-      this.pipeline = pipelineType;
+    if (object instanceof RenderType type) {
+      this.renderType = type;
       return;
     }
 
-    throw new IllegalArgumentException("You can only set a Pipeline as render resource");
+    throw new IllegalArgumentException("You can only set a RenderType as render resource");
   }
 
   @Override
   public Object getQuadsRenderResource() {
-    return Pipeline.QUADS;
+    return RenderType.debugQuads();
   }
 
   @Override
   public Object getLinesRenderResource() {
-    return Pipeline.LINES;
+    return RenderType.debugLine(RenderSystem.getShaderLineWidth());
   }
 
   @Override
   public Object getDebugLinesRenderResource() {
-    return Pipeline.DEBUG_LINES;
+    return RenderType.debugLine(RenderSystem.getShaderLineWidth());
   }
 
   @Override
@@ -64,83 +50,19 @@ public class VersionedRenderHelper implements RenderHelper {
 
     versionedBuilder.end();
 
-    final RenderPipeline pipeline;
+    final DepthTestFunction depthFunction = switch (depthFunc) {
+      case GlConst.GL_ALWAYS -> DepthTestFunction.NO_DEPTH_TEST;
+      case GlConst.GL_GEQUAL -> DepthTestFunction.GREATER_DEPTH_TEST;
+      default -> DepthTestFunction.LESS_DEPTH_TEST;
+    };
 
-    switch (depthFunc) {
-      case GlConst.GL_ALWAYS ->
-          pipeline = this.pipeline.any();
-      case GlConst.GL_GEQUAL ->
-          pipeline = this.pipeline.hidden();
-      default ->
-          pipeline = this.pipeline.visible();
-    }
+    final RenderPipelineAccessor pipeline = (RenderPipelineAccessor) this.renderType.getRenderPipeline();
+    pipeline.storeDepthTestFunction();
+    pipeline.setDepthTestFunction(depthFunction);
 
-    this.draw(pipeline, versionedBuilder.renderedBuffer());
-  }
+    this.renderType.draw(versionedBuilder.renderedBuffer());
 
-  // this is the same as 'RenderType#draw' maybe use it in the future
-  private void draw(final RenderPipeline pipeline, final MeshData meshData) {
-    try {
-      final GpuBuffer vertexBuffer = pipeline.getVertexFormat().uploadImmediateIndexBuffer(meshData.vertexBuffer());
-
-      final GpuBuffer indexBuffer;
-      final VertexFormat.IndexType indexType;
-
-      if (meshData.indexBuffer() == null) {
-        final RenderSystem.AutoStorageIndexBuffer indices = RenderSystem.getSequentialBuffer(meshData.drawState().mode());
-
-        indexBuffer = indices.getBuffer(meshData.drawState().indexCount());
-        indexType = indices.type();
-      }
-
-      else {
-        indexBuffer = pipeline.getVertexFormat().uploadImmediateIndexBuffer(meshData.indexBuffer());
-        indexType = meshData.drawState().indexType();
-      }
-
-      final Minecraft minecraft = Minecraft.getInstance();
-      final RenderTarget translucent = minecraft.levelRenderer.getTranslucentTarget();
-      final RenderTarget target = translucent == null
-          ? minecraft.getMainRenderTarget()
-          : translucent;
-
-      try (final RenderPass pass = RenderSystem.getDevice().createCommandEncoder()
-          .createRenderPass(target.getColorTexture(), OptionalInt.empty(),
-              target.useDepth ? target.getDepthTexture() : null, OptionalDouble.empty())) {
-
-        pass.setPipeline(pipeline);
-        pass.setVertexBuffer(0, vertexBuffer);
-
-        if (RenderSystem.SCISSOR_STATE.isEnabled()) {
-          pass.enableScissor(RenderSystem.SCISSOR_STATE);
-        }
-
-        for (int i = 0; i < 12; ++i) {
-          final GpuTexture texture = RenderSystem.getShaderTexture(i);
-
-          if (texture != null) {
-            pass.bindSampler("Sampler" + i, texture);
-          }
-        }
-
-        pass.setIndexBuffer(indexBuffer, indexType);
-        pass.drawIndexed(0, meshData.drawState().indexCount());
-      }
-    } catch (final Throwable throwable) {
-      if (meshData == null) {
-        throw throwable;
-      }
-
-      try {
-        meshData.close();
-      } catch (final Throwable suppressed) {
-        throwable.addSuppressed(suppressed);
-      }
-
-      throw throwable;
-    }
-
-    meshData.close();
+    pipeline.restoreDepthTestFunction();
   }
 
 }
