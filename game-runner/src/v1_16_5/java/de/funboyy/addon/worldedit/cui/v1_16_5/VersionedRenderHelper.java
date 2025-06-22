@@ -9,7 +9,7 @@ import net.labymod.api.models.Implements;
 public class VersionedRenderHelper implements RenderHelper {
 
   @Override
-  public void endTesselator(final BufferBuilder builder) {
+  public void endTesselator(final BufferBuilder builder, final int depthFunc) {
     Tesselator.getInstance().end();
   }
 

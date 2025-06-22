@@ -8,7 +8,7 @@ import net.labymod.api.client.gfx.GlConst;
 import net.labymod.api.client.gfx.pipeline.Blaze3DGlStatePipeline;
 import net.labymod.api.client.render.matrix.Stack;
 import net.labymod.api.client.world.MinecraftCamera;
-import net.labymod.api.util.math.vector.FloatVector3;
+import net.labymod.api.util.math.vector.DoubleVector3;
 import org.enginehub.worldeditcui.WorldEdit;
 import org.enginehub.worldeditcui.render.LineStyle;
 import org.enginehub.worldeditcui.render.PipelineProvider;
@@ -89,7 +89,7 @@ public class WorldEditRenderer {
         return;
       }
 
-      final FloatVector3 position = camera.renderPosition();
+      final DoubleVector3 position = camera.renderPosition();
 
       this.context.init(new Vector3(position.getX(), position.getY(), position.getZ()), tickDelta, sink);
 
@@ -107,7 +107,7 @@ public class WorldEditRenderer {
 
       this.pipeline.setLineWidth(LineStyle.DEFAULT_WIDTH);
 
-      final Object oldShader = this.renderHelper.getShader();
+      final Object oldRenderResource = this.renderHelper.getRenderResource();
 
       try {
         this.controller.renderSelections(this.context);
@@ -119,7 +119,7 @@ public class WorldEditRenderer {
 
       this.pipeline.depthFunc(GlConst.GL_LEQUAL);
 
-      this.renderHelper.setShader(oldShader);
+      this.renderHelper.setRenderResource(oldRenderResource);
 
       this.pipeline.enableTexture();
       this.pipeline.disableBlend();

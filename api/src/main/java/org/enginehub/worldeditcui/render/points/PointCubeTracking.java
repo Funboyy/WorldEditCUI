@@ -34,7 +34,7 @@ public class PointCubeTracking extends PointCube {
     final HitResult res = WorldEdit.references().minecraftHelper()
         .pick(this.entity, this.traceDistance, partialTicks, false);
 
-    if (res.location().distance(this.entity.position()) > this.traceDistance) {
+    if (res.location().distance(this.entity.position().toFloatVector3()) > this.traceDistance) {
       return;
     }
 
