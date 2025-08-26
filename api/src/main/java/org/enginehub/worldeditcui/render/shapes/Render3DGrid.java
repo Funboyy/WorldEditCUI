@@ -60,7 +60,8 @@ public class Render3DGrid extends RenderRegion {
 		final double z2 = this.second.getZ() - camera.getZ();
 
 		if (this.spacing != 1.0) {
-      context.disableCull();
+      // ToDo: need to check if we even need this or if it works fine without
+      // context.disableCull();
 
 			final double[] vertices = {
 					x1, y1, z1,  x2, y1, z1,  x2, y1, z2,  x1, y1, z2, // bottom
@@ -85,8 +86,9 @@ public class Render3DGrid extends RenderRegion {
         context.endQuads();
       }
 
-			context.flush(); // only needed because of disable/enable cull
-      context.enableCull();
+			context.flush(); // only needed because of disable/enable cull (maybe not?)
+      // ToDo: need to check if we even need this or if it works fine without
+      // context.enableCull();
 		}
 		
 		if (this.spacing < Render3DGrid.MIN_SPACING) {

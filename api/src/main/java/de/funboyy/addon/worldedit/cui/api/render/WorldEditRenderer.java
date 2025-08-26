@@ -4,13 +4,11 @@ import de.funboyy.addon.worldedit.cui.api.MinecraftHelper;
 import java.util.List;
 import net.labymod.api.Laby;
 import net.labymod.api.client.Minecraft;
-import net.labymod.api.client.gfx.GlConst;
-import net.labymod.api.client.gfx.pipeline.Blaze3DGlStatePipeline;
+import net.labymod.api.client.gfx.pipeline.util.MatrixTracker;
 import net.labymod.api.client.render.matrix.Stack;
 import net.labymod.api.client.world.MinecraftCamera;
 import net.labymod.api.util.math.vector.DoubleVector3;
 import org.enginehub.worldeditcui.WorldEdit;
-import org.enginehub.worldeditcui.render.LineStyle;
 import org.enginehub.worldeditcui.render.PipelineProvider;
 import org.enginehub.worldeditcui.render.RenderSink;
 import org.enginehub.worldeditcui.util.Vector3;
@@ -18,9 +16,7 @@ import org.enginehub.worldeditcui.util.Vector3;
 public class WorldEditRenderer {
 
   private final Minecraft minecraft;
-  private final Blaze3DGlStatePipeline pipeline;
   private final MinecraftHelper helper;
-  private final RenderHelper renderHelper;
   private final WorldEdit controller;
   private final RenderContext context;
   private final List<PipelineProvider> pipelines;
@@ -29,9 +25,7 @@ public class WorldEditRenderer {
 
   public WorldEditRenderer(final List<PipelineProvider> pipelines) {
     this.minecraft = Laby.labyAPI().minecraft();
-    this.pipeline = Laby.gfx().blaze3DGlStatePipeline();
     this.helper = WorldEdit.references().minecraftHelper();
-    this.renderHelper = WorldEdit.references().renderHelper();
     this.controller = new WorldEdit();
     this.context = new RenderContext();
     this.pipelines = pipelines;
@@ -93,21 +87,8 @@ public class WorldEditRenderer {
 
       this.context.init(new Vector3(position.getX(), position.getY(), position.getZ()), tickDelta, sink);
 
-      this.pipeline.blaze3DFog().disable();
-
-      final Stack stack = this.pipeline.getModelViewStack();
+      final Stack stack = MatrixTracker.MODEL_VIEW_MATRIX;
       stack.push();
-
-      this.pipeline.disableCull();
-      this.pipeline.enableBlend();
-      this.pipeline.disableTexture();
-      this.pipeline.enableDepthTest();
-      this.pipeline.blendFunc(GlConst.GL_SRC_ALPHA, GlConst.GL_ONE_MINUS_SRC_ALPHA);
-      this.pipeline.depthMask(true);
-
-      this.pipeline.setLineWidth(LineStyle.DEFAULT_WIDTH);
-
-      final Object oldRenderResource = this.renderHelper.getRenderResource();
 
       try {
         this.controller.renderSelections(this.context);
@@ -117,15 +98,7 @@ public class WorldEditRenderer {
         this.invalidatePipeline();
       }
 
-      this.pipeline.depthFunc(GlConst.GL_LEQUAL);
-
-      this.renderHelper.setRenderResource(oldRenderResource);
-
-      this.pipeline.enableTexture();
-      this.pipeline.disableBlend();
-      this.pipeline.enableCull();
       stack.pop();
-      this.pipeline.blaze3DFog().enable();
 
       this.helper.popProfiler();
     } catch (final Exception exception) {

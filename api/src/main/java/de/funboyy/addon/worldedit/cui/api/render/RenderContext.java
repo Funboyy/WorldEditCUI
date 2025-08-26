@@ -1,19 +1,13 @@
 package de.funboyy.addon.worldedit.cui.api.render;
 
-import net.labymod.api.Laby;
-import net.labymod.api.client.gfx.pipeline.Blaze3DGlStatePipeline;
-import net.labymod.api.client.render.matrix.NOPStack;
-import net.labymod.api.client.render.matrix.Stack;
+import net.labymod.api.client.gfx.pipeline.util.MatrixTracker;
 import net.labymod.api.util.Color;
-import org.enginehub.worldeditcui.WorldEdit;
 import org.enginehub.worldeditcui.render.LineStyle;
 import org.enginehub.worldeditcui.render.RenderSink;
 import org.enginehub.worldeditcui.render.RenderStyle.RenderType;
 import org.enginehub.worldeditcui.util.Vector3;
 
 public class RenderContext implements RenderSink {
-
-  private final Blaze3DGlStatePipeline pipeline = Laby.references().blaze3DGlStatePipeline();
 
   private Vector3 cameraPos;
   private float dt;
@@ -23,49 +17,16 @@ public class RenderContext implements RenderSink {
     return this.cameraPos;
   }
 
-  public void popPose() {
-    final Stack stack = this.pipeline.getModelViewStack();
-
-    if (stack instanceof NOPStack) {
-      WorldEdit.references().renderHelper().popPose();
-      return;
-    }
-
-    stack.pop();
+  public void pop() {
+    MatrixTracker.MODEL_VIEW_MATRIX.pop();
   }
 
-  public void pushPose() {
-    final Stack stack = this.pipeline.getModelViewStack();
-
-    if (stack instanceof NOPStack) {
-      WorldEdit.references().renderHelper().pushPose();
-      return;
-    }
-
-    stack.push();
+  public void push() {
+    MatrixTracker.MODEL_VIEW_MATRIX.push();
   }
 
   public void translate(final double x, final double y, final double z) {
-    final Stack stack = this.pipeline.getModelViewStack();
-
-    if (stack instanceof NOPStack) {
-      WorldEdit.references().renderHelper().translate((float) x, (float) y, (float) z);
-      return;
-    }
-
-    stack.translate((float) x, (float) y, (float) z);
-  }
-
-  public void applyMatrices() {
-    this.pipeline.applyModelViewMatrix();
-  }
-
-  public void enableCull() {
-    this.pipeline.enableCull();
-  }
-
-  public void disableCull() {
-    this.pipeline.disableCull();
+    MatrixTracker.MODEL_VIEW_MATRIX.translate((float) x, (float) y, (float) z);
   }
 
   public float dt() {

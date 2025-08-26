@@ -3,34 +3,36 @@ package de.funboyy.addon.worldedit.cui.api.render;
 import java.util.Objects;
 import java.util.function.Supplier;
 import net.labymod.api.Laby;
-import net.labymod.api.client.gfx.pipeline.Blaze3DGlStatePipeline;
-import net.labymod.api.client.render.RenderPipeline;
-import net.labymod.api.client.render.vertex.BufferBuilder;
-import net.labymod.api.client.render.vertex.VertexFormatType;
+import net.labymod.api.client.gfx.pipeline.renderer.mesh.MeshRenderer;
+import net.labymod.api.client.gfx.pipeline.util.MatrixTracker;
+import net.labymod.api.laby3d.Laby3D;
+import net.labymod.api.laby3d.shaders.block.DynamicTransformsUniformBlock;
+import net.labymod.api.laby3d.shaders.block.DynamicTransformsUniformBlockData;
 import net.labymod.api.util.math.vector.FloatVector3;
-import org.enginehub.worldeditcui.WorldEdit;
+import net.labymod.laby3d.api.buffers.BufferBuilder;
+import net.labymod.laby3d.api.pipeline.ComparisonStrategy;
+import net.labymod.laby3d.api.pipeline.DrawingMode;
+import net.labymod.laby3d.api.pipeline.RenderState;
+import net.labymod.laby3d.api.vertex.VertexAttributes;
+import net.labymod.laby3d.api.vertex.VertexDescription;
 import org.enginehub.worldeditcui.render.LineStyle;
 import org.enginehub.worldeditcui.render.RenderSink;
 import org.enginehub.worldeditcui.render.RenderStyle;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
 
 public class BufferBuilderRenderSink implements RenderSink {
 
-  private static final RenderType QUADS = new RenderType(Mode.QUADS,
-      VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper()::getQuadsRenderResource);
-  private static final RenderType LINES = new RenderType(Mode.LINES,
-      VertexFormatType.POSITION_COLOR_NORMAL, WorldEdit.references().renderHelper()::getLinesRenderResource);
-  private static final RenderType LINES_LOOP = new RenderType(Mode.LINES,
-      VertexFormatType.POSITION_COLOR_NORMAL, WorldEdit.references().renderHelper()::getLinesRenderResource);
+  private static final RenderType QUADS = new RenderType(WorldEditRenderStates.QUADS);
+  private static final RenderType LINES = new RenderType(WorldEditRenderStates.LINES);
+  private static final RenderType LINES_LOOP = new RenderType(WorldEditRenderStates.LINES);
 
-  private static final RenderType DEBUG_LINES = new RenderType(Mode.DEBUG_LINES,
-      VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper()::getDebugLinesRenderResource);
-  private static final RenderType DEBUG_LINES_LOOP = new RenderType(Mode.DEBUG_LINES,
-      VertexFormatType.POSITION_COLOR, WorldEdit.references().renderHelper()::getDebugLinesRenderResource);
+  // ToDo: maybe we don't even need debug lines anymore, depends how it is gonna work with shaders
+  //  but at the moment not even cosmetics are rendered with a OptiFine shader
+  private static final RenderType DEBUG_LINES = new RenderType(WorldEditRenderStates.LINES);
+  private static final RenderType DEBUG_LINES_LOOP = new RenderType(WorldEditRenderStates.LINES);
 
-  private final RenderPipeline renderPipeline;
-  private final Blaze3DGlStatePipeline statePipeline;
-  private final RenderHelper renderHelper;
+  private final Laby3D laby3D;
 
   private final Supplier<Boolean> debugSupplier;
   private final Runnable preFlush;
@@ -46,17 +48,15 @@ public class BufferBuilderRenderSink implements RenderSink {
   private boolean debug;
 
   // line state
-  private float lastLineWidth = -1;
-  private int lastDepthFunc = -1;
+  private float lastLineWidth = LineStyle.DEFAULT_WIDTH;
+  private ComparisonStrategy lastStrategy = null;
 
   public BufferBuilderRenderSink() {
     this(() -> false, () -> {}, () -> {});
   }
 
   public BufferBuilderRenderSink(final Supplier<Boolean> debugSupplier, final Runnable preFlush, final Runnable postFlush) {
-    this.renderPipeline = Laby.references().renderPipeline();
-    this.statePipeline = Laby.references().blaze3DGlStatePipeline();
-    this.renderHelper = WorldEdit.references().renderHelper();
+    this.laby3D = Laby.references().laby3D();
 
     this.debugSupplier = debugSupplier;
     this.preFlush = preFlush;
@@ -78,7 +78,7 @@ public class BufferBuilderRenderSink implements RenderSink {
       return false;
     }
 
-    if (line.lineWidth == this.lastLineWidth && line.renderType.getDepthFunc() == this.lastDepthFunc) {
+    if (line.lineWidth == this.lastLineWidth && line.renderType.getStrategy() == this.lastStrategy) {
       return true;
     }
 
@@ -86,13 +86,11 @@ public class BufferBuilderRenderSink implements RenderSink {
 
     if (this.active && this.activeRenderType != null) {
       this.canFlush = true;
-      this.builder = this.renderPipeline.createBufferBuilder();
-      this.statePipeline.color4f(1.0f, 1.0f, 1.0f, 1.0f);
-      this.builder.begin(this.activeRenderType.mode(), this.activeRenderType.type());
+      this.builder = this.laby3D.begin(this.activeRenderType.mode(), this.activeRenderType.description());
     }
 
-    this.statePipeline.setLineWidth(this.lastLineWidth = line.lineWidth);
-    this.statePipeline.depthFunc(this.lastDepthFunc = line.renderType.getDepthFunc());
+    this.lastLineWidth = line.lineWidth;
+    this.lastStrategy = line.renderType.getStrategy();
 
     return true;
   }
@@ -107,29 +105,28 @@ public class BufferBuilderRenderSink implements RenderSink {
       throw new IllegalStateException("Tried to draw when not active");
     }
 
+    final Matrix4f pose = MatrixTracker.MODEL_VIEW_MATRIX.getProvider().getPose();
     final BufferBuilder builder = this.builder;
+
     if (this.activeRenderType == LINES_LOOP || this.activeRenderType == DEBUG_LINES_LOOP) {
       // duplicate last
       if (this.canLoop) {
         final FloatVector3 normal = this.activeRenderType.hasNormals() ?
             this.computeNormal(this.loopX, this.loopY, this.loopZ, x, y, z) : null;
 
-        builder.vertex((float) this.loopX, (float) this.loopY, (float) this.loopZ)
-            .color(this.red, this.green, this.blue, this.alpha);
+        builder.addVertex(pose, (float) this.loopX, (float) this.loopY, (float) this.loopZ)
+            .setColor(this.red, this.green, this.blue, this.alpha);
 
         if (normal != null) {
           // we need to compute normals pointing directly towards the screen
-          builder.normal(normal.getX(), normal.getY(), normal.getZ());
+          builder.setNormal(normal.getX(), normal.getY(), normal.getZ());
         }
 
-        builder.next();
-        builder.vertex((float) x, (float) y, (float) z).color(this.red, this.green, this.blue, this.alpha);
+        builder.addVertex(pose, (float) x, (float) y, (float) z).setColor(this.red, this.green, this.blue, this.alpha);
 
         if (normal != null) {
-          builder.normal(normal.getX(), normal.getY(), normal.getZ());
+          builder.setNormal(normal.getX(), normal.getY(), normal.getZ());
         }
-
-        builder.next();
       }
 
       else {
@@ -148,21 +145,19 @@ public class BufferBuilderRenderSink implements RenderSink {
         final FloatVector3 normal = this.activeRenderType.hasNormals() ?
             this.computeNormal(this.loopX, this.loopY, this.loopZ, x, y, z) : null;
 
-        builder.vertex((float) this.loopX, (float) this.loopY, (float) this.loopZ)
-            .color(this.red, this.green, this.blue, this.alpha);
+        builder.addVertex(pose, (float) this.loopX, (float) this.loopY, (float) this.loopZ)
+            .setColor(this.red, this.green, this.blue, this.alpha);
 
         if (normal != null) {
-          builder.normal(normal.getX(), normal.getY(), normal.getZ());
+          builder.setNormal(normal.getX(), normal.getY(), normal.getZ());
         }
 
-        builder.next();
-        builder.vertex((float) x, (float) y, (float) z).color(this.red, this.green, this.blue, this.alpha);
+        builder.addVertex(pose, (float) x, (float) y, (float) z).setColor(this.red, this.green, this.blue, this.alpha);
 
         if (normal != null) {
-          builder.normal(normal.getX(), normal.getY(), normal.getZ());
+          builder.setNormal(normal.getX(), normal.getY(), normal.getZ());
         }
 
-        builder.next();
         this.canLoop = false;
       }
 
@@ -175,7 +170,7 @@ public class BufferBuilderRenderSink implements RenderSink {
     }
 
     else {
-      builder.vertex((float) x, (float) y, (float) z).color(this.red, this.green, this.blue, this.alpha).next();
+      builder.addVertex(pose, (float) x, (float) y, (float) z).setColor(this.red, this.green, this.blue, this.alpha);
     }
 
     return this;
@@ -209,25 +204,24 @@ public class BufferBuilderRenderSink implements RenderSink {
 
     this.canLoop = false;
 
+    final Matrix4f pose = MatrixTracker.MODEL_VIEW_MATRIX.getProvider().getPose();
     final FloatVector3 normal = this.activeRenderType.hasNormals() ?
         this.computeNormal(this.loopX, this.loopY, this.loopZ, this.loopFirstX, this.loopFirstY, this.loopFirstZ) : null;
 
-    this.builder.vertex((float) this.loopX, (float) this.loopY, (float) this.loopZ)
-        .color(this.red, this.green, this.blue, this.alpha);
+    this.builder.addVertex(pose, (float) this.loopX, (float) this.loopY, (float) this.loopZ)
+        .setColor(this.red, this.green, this.blue, this.alpha);
 
     if (normal != null) {
-      this.builder.normal(normal.getX(), normal.getY(), normal.getZ());
+      this.builder.setNormal(normal.getX(), normal.getY(), normal.getZ());
     }
 
-    this.builder.next();
-    this.builder.vertex((float) this.loopFirstX, (float) this.loopFirstY, (float) this.loopFirstZ)
-        .color(this.red, this.green, this.blue, this.alpha);
+    this.builder.addVertex(pose, (float) this.loopFirstX, (float) this.loopFirstY, (float) this.loopFirstZ)
+        .setColor(this.red, this.green, this.blue, this.alpha);
 
     if (normal != null) {
-      this.builder.normal(normal.getX(), normal.getY(), normal.getZ());
+      this.builder.setNormal(normal.getX(), normal.getY(), normal.getZ());
     }
 
-    this.builder.next();
     return this;
   }
 
@@ -272,10 +266,13 @@ public class BufferBuilderRenderSink implements RenderSink {
 
     try {
       if (this.activeRenderType != null) {
-        this.renderHelper.setRenderResource(this.activeRenderType.renderResource());
-      }
+        final DynamicTransformsUniformBlockData data = new DynamicTransformsUniformBlockData();
+        data.setLineWidth(this.lastLineWidth);
 
-      this.renderHelper.endTesselator(this.builder, this.lastDepthFunc);
+        MeshRenderer.drawImmediate(this.builder.build(),
+            WorldEditRenderStates.get(this.activeRenderType.mode(), this.lastStrategy),
+            command -> command.setUniformBlockData(DynamicTransformsUniformBlock.NAME, data));
+      }
     } finally {
       this.postFlush.run();
       this.builder = null;
@@ -306,55 +303,39 @@ public class BufferBuilderRenderSink implements RenderSink {
 
     if (this.activeRenderType == null || this.activeRenderType.mode() != renderType.mode()) {
       this.canFlush = true;
-      this.statePipeline.color4f(1.0f, 1.0f, 1.0f, 1.0f);
-      this.builder = this.renderPipeline.createBufferBuilder();
-      this.builder.begin(renderType.mode(), renderType.type());
+      this.builder = this.laby3D.begin(renderType.mode(), renderType.description());
     }
 
     this.activeRenderType = renderType;
     this.active = true;
   }
 
-  public static class Mode {
-
-    public static final int QUADS = 7;
-    public static final int LINES = 1;
-    public static final int DEBUG_LINES = -5;
-
-  }
-
   public static class RenderType {
 
-    private final int mode;
-    private final VertexFormatType type;
+    private final DrawingMode mode;
+    private final VertexDescription description;
     private final boolean hasNormals;
-    private final Supplier<Object> renderResourceSupplier;
 
-    public RenderType(final int mode, final VertexFormatType type, final Supplier<Object> renderResourceSupplier) {
-      this.mode = mode;
-      this.type = type;
-      this.hasNormals = type.vertexName().contains("normal");
-      this.renderResourceSupplier = renderResourceSupplier;
+    public RenderType(final RenderState renderState) {
+      this.mode = renderState.drawingMode();
+      this.description = renderState.vertexDescription();
+      this.hasNormals = this.description.containsAttribute(VertexAttributes.NORMAL);
     }
 
-    int mode() {
+    DrawingMode mode() {
       return this.mode;
     }
 
-    VertexFormatType type() {
-      return this.type;
+    VertexDescription description() {
+      return this.description;
     }
 
     boolean hasNormals() {
       return this.hasNormals;
     }
 
-    Object renderResource() {
-      return this.renderResourceSupplier.get();
-    }
-
     boolean mustFlushAfter(final RenderType previous) {
-      return previous.mode() != this.mode || !Objects.equals(previous.type(), this.type);
+      return previous.mode() != this.mode || !Objects.equals(previous.description(), this.description);
     }
 
   }

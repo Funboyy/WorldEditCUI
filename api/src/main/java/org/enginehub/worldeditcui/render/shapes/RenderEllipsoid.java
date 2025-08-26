@@ -28,10 +28,9 @@ public class RenderEllipsoid extends RenderRegion {
 	@Override
 	public void render(final RenderContext context) {
 		context.flush();
-		context.pushPose();
-		context.translate(this.centerX - context.cameraPos().getX(), this.centerY - context.cameraPos().getY(), this.centerZ
-        - context.cameraPos().getZ());
-		context.applyMatrices();
+		context.push();
+		context.translate(this.centerX - context.cameraPos().getX(), this.centerY - context.cameraPos().getY(),
+        this.centerZ - context.cameraPos().getZ());
 
 		for (final LineStyle line : this.style.getLines()) {
 			if (context.apply(line, this.style.getRenderType())) {
@@ -44,8 +43,7 @@ public class RenderEllipsoid extends RenderRegion {
 		}
 
 		context.flush();
-		context.popPose();
-		context.applyMatrices();
+		context.pop();
 	}
 	
 	protected void drawXZPlane(final RenderContext context) {

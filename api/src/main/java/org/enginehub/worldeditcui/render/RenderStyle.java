@@ -1,28 +1,28 @@
 package org.enginehub.worldeditcui.render;
 
-import net.labymod.api.client.gfx.GlConst;
 import net.labymod.api.util.Color;
+import net.labymod.laby3d.api.pipeline.ComparisonStrategy;
 
 public interface RenderStyle {
 
   enum RenderType {
 
-    ANY(GlConst.GL_ALWAYS),
-    HIDDEN(GlConst.GL_GEQUAL),
-    VISIBLE(GlConst.GL_LESS);
+    ANY(ComparisonStrategy.ALWAYS),
+    HIDDEN(ComparisonStrategy.GEQUAL),
+    VISIBLE(ComparisonStrategy.LESS);
 
-    private final int depthFunction;
+    private final ComparisonStrategy strategy;
 
-    RenderType(final int depthFunction) {
-      this.depthFunction = depthFunction;
+    RenderType(final ComparisonStrategy strategy) {
+      this.strategy = strategy;
     }
 
     public boolean matches(final RenderType other) {
       return other == RenderType.ANY || other == this;
     }
 
-    public int getDepthFunc() {
-      return this.depthFunction;
+    public ComparisonStrategy getStrategy() {
+      return this.strategy;
     }
 
   }

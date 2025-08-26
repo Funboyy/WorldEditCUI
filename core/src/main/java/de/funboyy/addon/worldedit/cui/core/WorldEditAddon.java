@@ -7,6 +7,8 @@ import org.enginehub.worldeditcui.WorldEdit;
 @AddonMain
 public class WorldEditAddon extends LabyAddon<WorldEditConfiguration> {
 
+  // ToDo: the screen sometimes flickers black when selecting position with WorldEdit tool
+
   @Override
   protected void enable() {
     this.registerSettingCategory();
