@@ -10,7 +10,7 @@ import org.enginehub.worldeditcui.util.Vector3;
 public class RenderContext implements RenderSink {
 
   private Vector3 cameraPos;
-  private float dt;
+  private float tickDelta;
   private RenderSink delegateSink;
 
   public Vector3 cameraPos() {
@@ -29,13 +29,13 @@ public class RenderContext implements RenderSink {
     MatrixTracker.MODEL_VIEW_MATRIX.translate((float) x, (float) y, (float) z);
   }
 
-  public float dt() {
-    return this.dt;
+  public float tickDelta() {
+    return this.tickDelta;
   }
 
-  public void init(final Vector3 cameraPos, final float dt, final RenderSink sink) {
+  public void init(final Vector3 cameraPos, final float tickDelta, final RenderSink sink) {
     this.cameraPos = cameraPos;
-    this.dt = dt;
+    this.tickDelta = tickDelta;
     this.delegateSink = sink;
   }
 

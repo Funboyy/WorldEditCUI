@@ -27,8 +27,8 @@ public class CuboidRegion extends Region {
   @Override
   public void render(final RenderContext context) {
     if (this.points[0] != null && this.points[1] != null) {
-      this.points[0].updatePoint(context.dt());
-      this.points[1].updatePoint(context.dt());
+      this.points[0].updatePoint(context.tickDelta());
+      this.points[1].updatePoint(context.tickDelta());
 
       this.grid.render(context);
       this.box.render(context);
@@ -38,12 +38,12 @@ public class CuboidRegion extends Region {
     }
 
     else if (this.points[0] != null) {
-      this.points[0].updatePoint(context.dt());
+      this.points[0].updatePoint(context.tickDelta());
       this.points[0].render(context);
     }
 
     else if (this.points[1] != null) {
-      this.points[1].updatePoint(context.dt());
+      this.points[1].updatePoint(context.tickDelta());
       this.points[1].render(context);
     }
   }
