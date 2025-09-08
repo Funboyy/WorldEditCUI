@@ -7,8 +7,8 @@ public interface ShaderAccessor {
 
   boolean isShadowPass();
 
-  void beginLeash();
+  void begin();
 
-  void endLeash();
+  void end();
 
 }

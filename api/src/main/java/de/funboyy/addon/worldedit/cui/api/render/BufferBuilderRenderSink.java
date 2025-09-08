@@ -1,18 +1,22 @@
 package de.funboyy.addon.worldedit.cui.api.render;
 
 import java.util.Objects;
-import java.util.function.Supplier;
 import net.labymod.api.Laby;
 import net.labymod.api.client.gfx.pipeline.renderer.mesh.MeshRenderer;
 import net.labymod.api.client.gfx.pipeline.util.MatrixTracker;
+import net.labymod.api.laby3d.GameTransformations;
 import net.labymod.api.laby3d.Laby3D;
+import net.labymod.api.laby3d.math.JomlMath;
 import net.labymod.api.laby3d.shaders.block.DynamicTransformsUniformBlock;
 import net.labymod.api.laby3d.shaders.block.DynamicTransformsUniformBlockData;
+import net.labymod.api.loader.MinecraftVersions;
+import net.labymod.api.util.RenderUtil;
 import net.labymod.api.util.math.vector.FloatVector3;
 import net.labymod.laby3d.api.buffers.BufferBuilder;
 import net.labymod.laby3d.api.pipeline.ComparisonStrategy;
 import net.labymod.laby3d.api.pipeline.DrawingMode;
 import net.labymod.laby3d.api.pipeline.RenderState;
+import net.labymod.laby3d.api.pipeline.pass.DrawRenderCommand;
 import net.labymod.laby3d.api.vertex.VertexAttributes;
 import net.labymod.laby3d.api.vertex.VertexDescription;
 import org.enginehub.worldeditcui.render.LineStyle;
@@ -23,18 +27,17 @@ import org.joml.Matrix4f;
 
 public class BufferBuilderRenderSink implements RenderSink {
 
+  // only needed while there is no build in way to change the line width via LabyMod
+  private static final boolean USE_IDENTITY_MATRIX = MinecraftVersions.V1_12_2.orOlder();
+  private static final Matrix4f IDENTITY_MATRIX = new Matrix4f();
+
   private static final RenderType QUADS = new RenderType(WorldEditRenderStates.QUADS);
   private static final RenderType LINES = new RenderType(WorldEditRenderStates.LINES);
   private static final RenderType LINES_LOOP = new RenderType(WorldEditRenderStates.LINES);
 
-  // ToDo: maybe we don't even need debug lines anymore, depends how it is gonna work with shaders
-  //  but at the moment not even cosmetics are rendered with a OptiFine shader
-  private static final RenderType DEBUG_LINES = new RenderType(WorldEditRenderStates.LINES);
-  private static final RenderType DEBUG_LINES_LOOP = new RenderType(WorldEditRenderStates.LINES);
-
   private final Laby3D laby3D;
+  private final GameTransformations transformations;
 
-  private final Supplier<Boolean> debugSupplier;
   private final Runnable preFlush;
   private final Runnable postFlush;
   private BufferBuilder builder;
@@ -45,20 +48,19 @@ public class BufferBuilderRenderSink implements RenderSink {
   private double loopX, loopY, loopZ; // track previous vertices for lines_loop
   private double loopFirstX, loopFirstY, loopFirstZ; // track initial vertices for lines_loop
   private boolean canLoop;
-  private boolean debug;
 
   // line state
   private float lastLineWidth = LineStyle.DEFAULT_WIDTH;
   private ComparisonStrategy lastStrategy = null;
 
   public BufferBuilderRenderSink() {
-    this(() -> false, () -> {}, () -> {});
+    this(() -> {}, () -> {});
   }
 
-  public BufferBuilderRenderSink(final Supplier<Boolean> debugSupplier, final Runnable preFlush, final Runnable postFlush) {
+  public BufferBuilderRenderSink(final Runnable preFlush, final Runnable postFlush) {
     this.laby3D = Laby.references().laby3D();
+    this.transformations = Laby.references().gameTransformations();
 
-    this.debugSupplier = debugSupplier;
     this.preFlush = preFlush;
     this.postFlush = postFlush;
   }
@@ -108,7 +110,7 @@ public class BufferBuilderRenderSink implements RenderSink {
     final Matrix4f pose = MatrixTracker.MODEL_VIEW_MATRIX.getProvider().getPose();
     final BufferBuilder builder = this.builder;
 
-    if (this.activeRenderType == LINES_LOOP || this.activeRenderType == DEBUG_LINES_LOOP) {
+    if (this.activeRenderType == LINES_LOOP) {
       // duplicate last
       if (this.canLoop) {
         final FloatVector3 normal = this.activeRenderType.hasNormals() ?
@@ -139,7 +141,7 @@ public class BufferBuilderRenderSink implements RenderSink {
       this.loopY = y;
       this.loopZ = z;
       this.canLoop = true;
-    } else if (this.activeRenderType == LINES || this.activeRenderType == DEBUG_LINES) {
+    } else if (this.activeRenderType == LINES) {
       // we buffer vertices so we can compute normals here
       if (this.canLoop) {
         final FloatVector3 normal = this.activeRenderType.hasNormals() ?
@@ -188,15 +190,13 @@ public class BufferBuilderRenderSink implements RenderSink {
 
   @Override
   public RenderSink beginLineLoop() {
-    this.debug = this.debugSupplier.get();
-
-    this.transitionState(this.debug ? DEBUG_LINES_LOOP : LINES_LOOP);
+    this.transitionState(LINES_LOOP);
     return this;
   }
 
   @Override
   public RenderSink endLineLoop() {
-    this.end(this.debug ? DEBUG_LINES_LOOP : LINES_LOOP);
+    this.end(LINES_LOOP);
 
     if (!this.canLoop) {
       return this;
@@ -227,15 +227,13 @@ public class BufferBuilderRenderSink implements RenderSink {
 
   @Override
   public RenderSink beginLines() {
-    this.debug = this.debugSupplier.get();
-
-    this.transitionState(this.debug ? DEBUG_LINES : LINES);
+    this.transitionState(LINES);
     return this;
   }
 
   @Override
   public RenderSink endLines() {
-    this.end(this.debug ? DEBUG_LINES : LINES);
+    this.end(LINES);
     return this;
   }
 
@@ -266,18 +264,32 @@ public class BufferBuilderRenderSink implements RenderSink {
 
     try {
       if (this.activeRenderType != null) {
-        final DynamicTransformsUniformBlockData data = new DynamicTransformsUniformBlockData();
-        data.setLineWidth(this.lastLineWidth);
-
         MeshRenderer.drawImmediate(this.builder.build(),
             WorldEditRenderStates.get(this.activeRenderType.mode(), this.lastStrategy),
-            command -> command.setUniformBlockData(DynamicTransformsUniformBlock.NAME, data));
+            this::setupDynamicTransformsUniform);
       }
     } finally {
       this.postFlush.run();
       this.builder = null;
       this.activeRenderType = null;
     }
+  }
+
+  // only needed while there is no build in way to change the line width via LabyMod
+  private void setupDynamicTransformsUniform(final DrawRenderCommand command) {
+    Matrix4f modelViewMatrix = USE_IDENTITY_MATRIX ? IDENTITY_MATRIX : this.transformations.modelViewMatrix();
+
+    final Matrix4f offscreenModelViewMatrix = RenderUtil.getOffscreenModelViewMatrix();
+
+    if (offscreenModelViewMatrix != null) {
+      modelViewMatrix = offscreenModelViewMatrix;
+    }
+
+    final DynamicTransformsUniformBlockData blockData = new DynamicTransformsUniformBlockData();
+    blockData.setLineWidth(this.lastLineWidth);
+    blockData.modelViewMatrix().set(JomlMath.cloneMatrix(modelViewMatrix));
+
+    command.setUniformBlockData(DynamicTransformsUniformBlock.NAME, blockData);
   }
 
   private void end(final RenderType renderType) {

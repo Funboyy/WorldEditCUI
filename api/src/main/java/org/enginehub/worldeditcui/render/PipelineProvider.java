@@ -10,10 +10,6 @@ public interface PipelineProvider {
         return true;
     }
 
-    default boolean useDebug() {
-      return false;
-    }
-
     RenderSink provide();
 
 }
