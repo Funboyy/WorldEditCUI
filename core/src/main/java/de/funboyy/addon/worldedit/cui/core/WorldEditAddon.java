@@ -7,7 +7,7 @@ import org.enginehub.worldeditcui.WorldEdit;
 @AddonMain
 public class WorldEditAddon extends LabyAddon<WorldEditConfiguration> {
 
-  // ToDo: the screen sometimes flickers black when selecting position with WorldEdit tool
+  // ToDo: the grid moves with an OptiFine shader in 1.21.8
 
   @Override
   protected void enable() {
