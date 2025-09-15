@@ -3,7 +3,7 @@ package de.funboyy.addon.worldedit.cui.api.render;
 import java.util.Objects;
 import net.labymod.api.Laby;
 import net.labymod.api.client.gfx.pipeline.renderer.mesh.MeshRenderer;
-import net.labymod.api.client.gfx.pipeline.util.MatrixTracker;
+import net.labymod.api.client.render.matrix.Stack;
 import net.labymod.api.laby3d.GameTransformations;
 import net.labymod.api.laby3d.Laby3D;
 import net.labymod.api.laby3d.math.JomlMath;
@@ -40,6 +40,7 @@ public class BufferBuilderRenderSink implements RenderSink {
 
   private final Runnable preFlush;
   private final Runnable postFlush;
+  private Stack stack;
   private BufferBuilder builder;
   private @Nullable RenderType activeRenderType;
   private boolean active;
@@ -63,6 +64,12 @@ public class BufferBuilderRenderSink implements RenderSink {
 
     this.preFlush = preFlush;
     this.postFlush = postFlush;
+  }
+
+  @Override
+  public RenderSink stack(final Stack stack) {
+    this.stack = stack;
+    return this;
   }
 
   @Override
@@ -107,7 +114,7 @@ public class BufferBuilderRenderSink implements RenderSink {
       throw new IllegalStateException("Tried to draw when not active");
     }
 
-    final Matrix4f pose = MatrixTracker.MODEL_VIEW_MATRIX.getProvider().getPose();
+    final Matrix4f pose = this.stack.getProvider().getPose();
     final BufferBuilder builder = this.builder;
 
     if (this.activeRenderType == LINES_LOOP) {
@@ -204,7 +211,7 @@ public class BufferBuilderRenderSink implements RenderSink {
 
     this.canLoop = false;
 
-    final Matrix4f pose = MatrixTracker.MODEL_VIEW_MATRIX.getProvider().getPose();
+    final Matrix4f pose = this.stack.getProvider().getPose();
     final FloatVector3 normal = this.activeRenderType.hasNormals() ?
         this.computeNormal(this.loopX, this.loopY, this.loopZ, this.loopFirstX, this.loopFirstY, this.loopFirstZ) : null;
 

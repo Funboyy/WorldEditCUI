@@ -1,6 +1,6 @@
 package de.funboyy.addon.worldedit.cui.api.render;
 
-import net.labymod.api.client.gfx.pipeline.util.MatrixTracker;
+import net.labymod.api.client.render.matrix.Stack;
 import net.labymod.api.util.Color;
 import org.enginehub.worldeditcui.render.LineStyle;
 import org.enginehub.worldeditcui.render.RenderSink;
@@ -9,6 +9,7 @@ import org.enginehub.worldeditcui.util.Vector3;
 
 public class RenderContext implements RenderSink {
 
+  private Stack stack;
   private Vector3 cameraPos;
   private float tickDelta;
   private RenderSink delegateSink;
@@ -17,26 +18,33 @@ public class RenderContext implements RenderSink {
     return this.cameraPos;
   }
 
+  public float tickDelta() {
+    return this.tickDelta;
+  }
+
   public void pop() {
-    MatrixTracker.MODEL_VIEW_MATRIX.pop();
+    this.stack.pop();
   }
 
   public void push() {
-    MatrixTracker.MODEL_VIEW_MATRIX.push();
+    this.stack.push();
   }
 
   public void translate(final double x, final double y, final double z) {
-    MatrixTracker.MODEL_VIEW_MATRIX.translate((float) x, (float) y, (float) z);
-  }
-
-  public float tickDelta() {
-    return this.tickDelta;
+    this.stack.translate((float) x, (float) y, (float) z);
   }
 
   public void init(final Vector3 cameraPos, final float tickDelta, final RenderSink sink) {
     this.cameraPos = cameraPos;
     this.tickDelta = tickDelta;
     this.delegateSink = sink;
+  }
+
+  @Override
+  public RenderContext stack(final Stack stack) {
+    this.stack = stack;
+    this.delegateSink.stack(stack);
+    return this;
   }
 
   @Override

@@ -4,7 +4,6 @@ import de.funboyy.addon.worldedit.cui.api.MinecraftHelper;
 import java.util.List;
 import net.labymod.api.Laby;
 import net.labymod.api.client.Minecraft;
-import net.labymod.api.client.gfx.pipeline.util.MatrixTracker;
 import net.labymod.api.client.render.matrix.Stack;
 import net.labymod.api.client.world.MinecraftCamera;
 import net.labymod.api.util.math.vector.DoubleVector3;
@@ -67,7 +66,7 @@ public class WorldEditRenderer {
     return this.controller;
   }
 
-  public void render(final float tickDelta) {
+  public void render(final Stack stack, final float tickDelta) {
     try {
       final RenderSink sink = this.providePipeline();
 
@@ -86,8 +85,8 @@ public class WorldEditRenderer {
       final DoubleVector3 position = camera.renderPosition();
 
       this.context.init(new Vector3(position.getX(), position.getY(), position.getZ()), tickDelta, sink);
+      this.context.stack(stack);
 
-      final Stack stack = MatrixTracker.MODEL_VIEW_MATRIX;
       stack.push();
 
       try {

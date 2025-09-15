@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
 import de.funboyy.addon.worldedit.cui.api.event.WorldEditRenderEvent;
 import net.labymod.api.Laby;
+import net.labymod.api.client.render.matrix.VanillaStackAccessor;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -83,7 +84,10 @@ public abstract class MixinLevelRender {
           target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V"
       )
   )
-  private void worldEdit$pushPose(final CallbackInfo callbackInfo) {
+  private void worldEdit$pushPose(final PoseStack stack, final float partialTicks, final long finishTimeNano,
+      final boolean drawBlockOutline, final Camera camera, final GameRenderer gameRenderer,
+      final LightTexture lightmap, final Matrix4f projectionMatrix, final CallbackInfo callbackInfo) {
+
     if (this.worldEdit$didRenderParticles) {
       this.worldEdit$didRenderParticles = false;
 
@@ -97,7 +101,7 @@ public abstract class MixinLevelRender {
         RenderSystem.applyModelViewMatrix();
         this.getTranslucentTarget().bindWrite(false);
 
-        Laby.fireEvent(new WorldEditRenderEvent(this.worldEdit$tickDelta));
+        Laby.fireEvent(new WorldEditRenderEvent(((VanillaStackAccessor) stack).stack(), this.worldEdit$tickDelta));
       } finally {
         this.minecraft.getMainRenderTarget().bindWrite(false);
         RenderSystem.getModelViewStack().popPose();
@@ -112,12 +116,15 @@ public abstract class MixinLevelRender {
           target = "Lnet/minecraft/client/renderer/LevelRenderer;renderDebug(Lnet/minecraft/client/Camera;)V"
       )
   )
-  private void worldEdit$renderDebug(final CallbackInfo callbackInfo) {
+  private void worldEdit$renderDebug(final PoseStack stack, final float partialTicks, final long finishTimeNano,
+      final boolean drawBlockOutline, final Camera camera, final GameRenderer gameRenderer,
+      final LightTexture lightmap, final Matrix4f projectionMatrix, final CallbackInfo callbackInfo) {
+
     if (this.transparencyChain != null) {
       return;
     }
 
-    Laby.fireEvent(new WorldEditRenderEvent(this.worldEdit$tickDelta));
+    Laby.fireEvent(new WorldEditRenderEvent(((VanillaStackAccessor) stack).stack(), this.worldEdit$tickDelta));
   }
 
 }
