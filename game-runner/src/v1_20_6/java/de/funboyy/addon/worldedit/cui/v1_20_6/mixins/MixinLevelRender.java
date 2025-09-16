@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.funboyy.addon.worldedit.cui.api.event.WorldEditRenderEvent;
 import net.labymod.api.Laby;
+import net.labymod.api.client.render.matrix.VanillaStackAccessor;
 import net.labymod.v1_20_6.client.util.MinecraftUtil;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -74,7 +75,7 @@ public abstract class MixinLevelRender {
       RenderSystem.applyModelViewMatrix();
       this.getTranslucentTarget().bindWrite(false);
 
-      Laby.fireEvent(new WorldEditRenderEvent(this.worldEdit$tickDelta));
+      Laby.fireEvent(new WorldEditRenderEvent(((VanillaStackAccessor) stack).stack(), this.worldEdit$tickDelta));
     } finally {
       this.minecraft.getMainRenderTarget().bindWrite(false);
       RenderSystem.getModelViewStack().popMatrix();
@@ -100,7 +101,7 @@ public abstract class MixinLevelRender {
       RenderSystem.getModelViewStack().mul(stack.last().pose());
       RenderSystem.applyModelViewMatrix();
 
-      Laby.fireEvent(new WorldEditRenderEvent(this.worldEdit$tickDelta));
+      Laby.fireEvent(new WorldEditRenderEvent(((VanillaStackAccessor) stack).stack(), this.worldEdit$tickDelta));
     } finally {
       RenderSystem.getModelViewStack().popMatrix();
       RenderSystem.applyModelViewMatrix();

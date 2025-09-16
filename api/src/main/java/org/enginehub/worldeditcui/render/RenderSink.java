@@ -1,9 +1,12 @@
 package org.enginehub.worldeditcui.render;
 
+import net.labymod.api.client.render.matrix.Stack;
 import net.labymod.api.util.Color;
 import org.enginehub.worldeditcui.render.RenderStyle.RenderType;
 
 public interface RenderSink {
+
+  RenderSink stack(final Stack stack);
 
   RenderSink color(final float red, final float green, final float blue, float alpha);
 

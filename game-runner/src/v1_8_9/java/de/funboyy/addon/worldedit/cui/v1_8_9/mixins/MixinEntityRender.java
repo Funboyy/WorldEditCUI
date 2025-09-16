@@ -2,6 +2,7 @@ package de.funboyy.addon.worldedit.cui.v1_8_9.mixins;
 
 import de.funboyy.addon.worldedit.cui.api.event.WorldEditRenderEvent;
 import net.labymod.api.Laby;
+import net.labymod.v1_8_9.client.render.matrix.VersionedStackProvider;
 import net.minecraft.client.renderer.EntityRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,7 +25,7 @@ public class MixinEntityRender {
       final long limitTime,
       final CallbackInfo callbackInfo
   ) {
-    Laby.fireEvent(new WorldEditRenderEvent(tickDelta));
+    Laby.fireEvent(new WorldEditRenderEvent(VersionedStackProvider.DEFAULT_STACK, tickDelta));
   }
 
 }

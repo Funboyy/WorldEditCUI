@@ -1,11 +1,7 @@
 package de.funboyy.addon.worldedit.cui.api.render;
 
-import net.labymod.api.Laby;
-import net.labymod.api.client.gfx.pipeline.Blaze3DGlStatePipeline;
-import net.labymod.api.client.render.matrix.NOPStack;
 import net.labymod.api.client.render.matrix.Stack;
 import net.labymod.api.util.Color;
-import org.enginehub.worldeditcui.WorldEdit;
 import org.enginehub.worldeditcui.render.LineStyle;
 import org.enginehub.worldeditcui.render.RenderSink;
 import org.enginehub.worldeditcui.render.RenderStyle.RenderType;
@@ -13,69 +9,42 @@ import org.enginehub.worldeditcui.util.Vector3;
 
 public class RenderContext implements RenderSink {
 
-  private final Blaze3DGlStatePipeline pipeline = Laby.references().blaze3DGlStatePipeline();
-
+  private Stack stack;
   private Vector3 cameraPos;
-  private float dt;
+  private float tickDelta;
   private RenderSink delegateSink;
 
   public Vector3 cameraPos() {
     return this.cameraPos;
   }
 
-  public void popPose() {
-    final Stack stack = this.pipeline.getModelViewStack();
-
-    if (stack instanceof NOPStack) {
-      WorldEdit.references().renderHelper().popPose();
-      return;
-    }
-
-    stack.pop();
+  public float tickDelta() {
+    return this.tickDelta;
   }
 
-  public void pushPose() {
-    final Stack stack = this.pipeline.getModelViewStack();
+  public void pop() {
+    this.stack.pop();
+  }
 
-    if (stack instanceof NOPStack) {
-      WorldEdit.references().renderHelper().pushPose();
-      return;
-    }
-
-    stack.push();
+  public void push() {
+    this.stack.push();
   }
 
   public void translate(final double x, final double y, final double z) {
-    final Stack stack = this.pipeline.getModelViewStack();
-
-    if (stack instanceof NOPStack) {
-      WorldEdit.references().renderHelper().translate((float) x, (float) y, (float) z);
-      return;
-    }
-
-    stack.translate((float) x, (float) y, (float) z);
+    this.stack.translate((float) x, (float) y, (float) z);
   }
 
-  public void applyMatrices() {
-    this.pipeline.applyModelViewMatrix();
-  }
-
-  public void enableCull() {
-    this.pipeline.enableCull();
-  }
-
-  public void disableCull() {
-    this.pipeline.disableCull();
-  }
-
-  public float dt() {
-    return this.dt;
-  }
-
-  public void init(final Vector3 cameraPos, final float dt, final RenderSink sink) {
+  public void init(final Vector3 cameraPos, final float tickDelta, final RenderSink sink) {
     this.cameraPos = cameraPos;
-    this.dt = dt;
+    this.tickDelta = tickDelta;
     this.delegateSink = sink;
+  }
+
+  @Override
+  public RenderContext stack(final Stack stack) {
+    this.stack = stack;
+    this.delegateSink.stack(stack);
+    return this;
   }
 
   @Override

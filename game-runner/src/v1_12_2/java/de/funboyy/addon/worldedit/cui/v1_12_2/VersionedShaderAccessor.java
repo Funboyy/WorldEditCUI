@@ -15,12 +15,12 @@ public class VersionedShaderAccessor implements ShaderAccessor {
   }
 
   @Override
-  public void beginLeash() {
+  public void begin() {
     Shaders.beginLeash();
   }
 
   @Override
-  public void endLeash() {
+  public void end() {
     Shaders.endLeash();
   }
 

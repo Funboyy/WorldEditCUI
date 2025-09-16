@@ -1,4 +1,4 @@
-package de.funboyy.addon.worldedit.cui.v1_20_2;
+package de.funboyy.addon.worldedit.cui.v1_21_8;
 
 import de.funboyy.addon.worldedit.cui.api.render.pipeline.ShaderAccessor;
 import javax.inject.Singleton;

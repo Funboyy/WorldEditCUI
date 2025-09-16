@@ -62,7 +62,7 @@ public class WorldEditListener {
 
   @Subscribe
   public void handleWorldEditRender(final WorldEditRenderEvent event) {
-    this.renderer.render(event.tickDelta());
+    this.renderer.render(event.stack(), event.tickDelta());
   }
 
   @Subscribe
