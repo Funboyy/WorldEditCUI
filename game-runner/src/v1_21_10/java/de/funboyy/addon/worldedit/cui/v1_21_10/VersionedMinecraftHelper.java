@@ -1,4 +1,4 @@
-package de.funboyy.addon.worldedit.cui.v1_21_9;
+package de.funboyy.addon.worldedit.cui.v1_21_10;
 
 import de.funboyy.addon.worldedit.cui.api.MinecraftHelper;
 import net.labymod.api.client.entity.Entity;
