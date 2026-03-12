@@ -16,7 +16,7 @@ import net.labymod.laby3d.api.buffers.BufferBuilder;
 import net.labymod.laby3d.api.pipeline.ComparisonStrategy;
 import net.labymod.laby3d.api.pipeline.DrawingMode;
 import net.labymod.laby3d.api.pipeline.RenderState;
-import net.labymod.laby3d.api.pipeline.pass.DrawRenderCommand;
+import net.labymod.laby3d.api.pipeline.pass.CommandBuffer;
 import net.labymod.laby3d.api.vertex.VertexAttributes;
 import net.labymod.laby3d.api.vertex.VertexDescription;
 import org.enginehub.worldeditcui.render.LineStyle;
@@ -283,7 +283,7 @@ public class BufferBuilderRenderSink implements RenderSink {
   }
 
   // only needed while there is no build in way to change the line width via LabyMod
-  private void setupDynamicTransformsUniform(final DrawRenderCommand command) {
+  private void setupDynamicTransformsUniform(final CommandBuffer commandBuffer) {
     Matrix4f modelViewMatrix = USE_IDENTITY_MATRIX ? IDENTITY_MATRIX : this.transformations.modelViewMatrix();
 
     final Matrix4f offscreenModelViewMatrix = RenderUtil.getOffscreenModelViewMatrix();
@@ -296,7 +296,7 @@ public class BufferBuilderRenderSink implements RenderSink {
     blockData.setLineWidth(this.lastLineWidth);
     blockData.modelViewMatrix().set(JomlMath.cloneMatrix(modelViewMatrix));
 
-    command.setUniformBlockData(DynamicTransformsUniformBlock.NAME, blockData);
+    commandBuffer.bindUniformBlockData(DynamicTransformsUniformBlock.NAME, blockData);
   }
 
   private void end(final RenderType renderType) {
