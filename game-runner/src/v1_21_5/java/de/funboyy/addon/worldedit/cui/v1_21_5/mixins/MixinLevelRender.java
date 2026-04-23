@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LevelRenderer.class)
@@ -59,16 +59,11 @@ public abstract class MixinLevelRender {
     this.worldEdit$tickDelta = deltaTracker.getGameTimeDeltaPartialTick(false);
   }
 
-  @Redirect(
+  @ModifyVariable(
       method = "renderLevel",
-      at = @At(
-          value = "NEW",
-          target = "()Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;"
-      )
+      at = @At("STORE")
   )
-  private FrameGraphBuilder worldEdit$storeFrameGraphBuilder() {
-    final FrameGraphBuilder frameGraphBuilder = new FrameGraphBuilder();
-
+  private FrameGraphBuilder worldEdit$storeFrameGraphBuilder(final FrameGraphBuilder frameGraphBuilder) {
     this.worldEdit$frameGraphBuilder = frameGraphBuilder;
 
     return frameGraphBuilder;
