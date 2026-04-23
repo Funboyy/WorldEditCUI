@@ -40,9 +40,9 @@ labyMod {
         displayName = "WorldEdit CUI"
         author = "lahwran, yetanotherx, Mumfrey, TomyLobo, mikroskeem, Funboyy"
         description = "Client-side user interface for WorldEdit"
-        minecraftVersion = "1.8.9<1.21.11"
+        minecraftVersion = "1.8.9<26.1.2"
         version = rootProject.version.toString()
-        releaseChannel = ReleaseChannels.PRODUCTION
+        releaseChannel = ReleaseChannels.SNAPSHOT
     }
 }
 
@@ -81,6 +81,11 @@ subprojects {
 
     group = rootProject.group
     version = rootProject.version
+
+    extensions.findByType(JavaPluginExtension::class.java)?.apply {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
 }
 
 data class OptiVersionManifest(val versions: List<OptiFineVersion>) {
