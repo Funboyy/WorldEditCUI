@@ -1,7 +1,7 @@
 rootProject.name = "worldeditcui"
 
 pluginManagement {
-    val labyGradlePluginVersion = "0.6.2"
+    val labyGradlePluginVersion = "0.8.0"
 
     buildscript {
         repositories {

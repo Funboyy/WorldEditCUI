@@ -21,16 +21,6 @@ labyMod {
         registerVersion(versions.toTypedArray()) {
             runs {
                 useOptiFine(true)
-
-                mixin {
-                    val versionMappings = file("./game-runner/mappings/").resolve("$versionId.tsrg")
-
-                    if (versionMappings.exists()) {
-                        extraMappings.add(versionMappings)
-                    }
-
-                    extraMappings.add(file("./game-runner/mappings/shared.tsrg"))
-                }
             }
         }
     }
