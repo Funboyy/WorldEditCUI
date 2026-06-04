@@ -1,7 +1,7 @@
 rootProject.name = "worldeditcui"
 
 pluginManagement {
-    val labyGradlePluginVersion = "0.8.0"
+    val labyGradlePluginVersion = "0.8.1"
 
     buildscript {
         repositories {
@@ -13,7 +13,7 @@ pluginManagement {
         }
 
         dependencies {
-            classpath("net.labymod.gradle", "common", labyGradlePluginVersion)
+            classpath("net.labymod.gradle:common:$labyGradlePluginVersion")
         }
     }
 }
