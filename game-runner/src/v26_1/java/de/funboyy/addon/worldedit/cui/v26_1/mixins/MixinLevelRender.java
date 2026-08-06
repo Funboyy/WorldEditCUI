@@ -12,7 +12,6 @@ import de.funboyy.addon.worldedit.cui.api.event.WorldEditRenderEvent;
 import net.labymod.api.Laby;
 import net.labymod.api.client.render.matrix.VanillaStackAccessor;
 import net.labymod.v26_1.client.util.MinecraftUtil;
-import net.labymod.v26_1.mixins.client.MixinLevelRenderer;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LevelTargetBundle;
@@ -118,7 +117,7 @@ public abstract class MixinLevelRender {
     Runnable wrappedTask = () -> {
       task.run();
 
-        if (this.getTransparencyChain() != null) {
+      if (this.getTransparencyChain() != null) {
         return;
       }
 

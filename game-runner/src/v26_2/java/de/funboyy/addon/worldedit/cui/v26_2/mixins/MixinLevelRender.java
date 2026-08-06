@@ -115,7 +115,7 @@ public abstract class MixinLevelRender {
     Runnable wrappedTask = () -> {
       task.run();
 
-        if (this.getTransparencyChain() != null) {
+      if (this.getTransparencyChain() != null) {
         return;
       }
 
