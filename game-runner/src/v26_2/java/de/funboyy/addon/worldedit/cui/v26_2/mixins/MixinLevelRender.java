@@ -1,7 +1,8 @@
-package de.funboyy.addon.worldedit.cui.v1_21_5.mixins;
+package de.funboyy.addon.worldedit.cui.v26_2.mixins;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.framegraph.FramePass;
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
@@ -10,15 +11,16 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import de.funboyy.addon.worldedit.cui.api.event.WorldEditRenderEvent;
 import net.labymod.api.Laby;
 import net.labymod.api.client.render.matrix.VanillaStackAccessor;
-import net.labymod.v1_21_5.client.util.MinecraftUtil;
-import net.minecraft.client.Camera;
+import net.labymod.v26_2.client.util.MinecraftUtil;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.PostChain;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
+import org.joml.Vector4f;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,10 +33,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LevelRenderer.class)
 public abstract class MixinLevelRender {
 
-  @Shadow @Final
+  @Final
+  @Shadow
   private LevelTargetBundle targets;
 
-  @Shadow @Nullable
+  @Nullable
+  @Shadow
   protected abstract PostChain getTransparencyChain();
 
   @Unique
@@ -43,24 +47,25 @@ public abstract class MixinLevelRender {
   private FrameGraphBuilder worldEdit$frameGraphBuilder;
 
   @Inject(
-      method = "renderLevel",
+      method = "render",
       at = @At("HEAD")
   )
   private void worldEdit$renderLevel(
       final GraphicsResourceAllocator graphicsResourceAllocator,
       final DeltaTracker deltaTracker,
       final boolean renderBlockOutline,
-      final Camera camera,
-      final GameRenderer gameRenderer,
-      final Matrix4f positionMatrix,
-      final Matrix4f projectionMatrix,
+      final CameraRenderState cameraState,
+      final Matrix4fc modelViewMatrix,
+      final GpuBufferSlice fogBuffer,
+      final Vector4f fogColor,
+      final boolean renderSky,
       final CallbackInfo callbackInfo) {
 
     this.worldEdit$tickDelta = deltaTracker.getGameTimeDeltaPartialTick(false);
   }
 
   @ModifyVariable(
-      method = "renderLevel",
+      method = "render",
       at = @At("STORE")
   )
   private FrameGraphBuilder worldEdit$storeFrameGraphBuilder(final FrameGraphBuilder frameGraphBuilder) {
@@ -70,10 +75,11 @@ public abstract class MixinLevelRender {
   }
 
   @Inject(
-      method = "renderLevel",
+      method = "render",
       at = @At(
-          value = "INVOKE",
-          target = "Lnet/minecraft/client/Options;getCloudsType()Lnet/minecraft/client/CloudStatus;"
+          value = "FIELD",
+          target = "Lnet/minecraft/client/renderer/state/OptionsRenderState;cloudStatus:Lnet/minecraft/client/CloudStatus;",
+          opcode = Opcodes.GETFIELD
       )
   )
   public void worldEdit$getCloudsType(final CallbackInfo callbackInfo) {
